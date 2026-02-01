@@ -5,7 +5,9 @@ export class ConfigurationManager {
     private context: vscode.ExtensionContext | undefined;
     private secrets: vscode.SecretStorage | undefined;
 
-    private constructor() { }
+    private constructor() {
+        // Private constructor to prevent direct instantiation - use getInstance()
+    }
 
     public static getInstance(): ConfigurationManager {
         if (!ConfigurationManager.instance) {
