@@ -1,0 +1,137 @@
+{
+  "name": "prompt-refiner",
+  "displayName": "AI Prompt Refiner",
+  "description": "Refine and optimize prompts for AI coding assistants using LLMs.",
+  "version": "0.1.0",
+  "publisher": "gperez88",
+  "icon": "assets/icon.png",
+  "engines": {
+    "vscode": "^1.108.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "promptRefiner.refineSelection",
+        "title": "Prompt Refiner: Refine Selection"
+      },
+      {
+        "command": "promptRefiner.selectModel",
+        "title": "Prompt Refiner: Select Model"
+      },
+      {
+        "command": "promptRefiner.setApiKey",
+        "title": "Prompt Refiner: Set API Key"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "promptRefiner.selectModel",
+        "key": "ctrl+alt+m",
+        "mac": "cmd+alt+m",
+        "when": "editorTextFocus"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "prompt-refiner",
+          "title": "Prompt Refiner",
+          "icon": "assets/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "prompt-refiner": [
+        {
+          "type": "webview",
+          "id": "promptRefiner.chatView",
+          "name": "Chat de Refinamiento",
+          "icon": "assets/icon.svg"
+        },
+        {
+          "type": "webview",
+          "id": "promptRefiner.settingsView",
+          "name": "Configuración",
+          "icon": "assets/icon.svg"
+        }
+      ]
+    },
+    "configuration": {
+      "type": "object",
+      "title": "Prompt Refiner",
+      "properties": {
+        "promptRefiner.provider": {
+          "type": "string",
+          "enum": [
+            "public",
+            "mock",
+            "gemini",
+            "openai",
+            "ollama",
+            "groq",
+            "huggingface"
+          ],
+          "default": "public",
+          "description": "The AI provider (Public offers free models without keys)."
+        },
+        "promptRefiner.model": {
+          "type": "string",
+          "default": "gpt-4o-mini",
+          "description": "Model ID. Examples: 'gpt-4o-mini', 'llama-3.1-70b', 'claude-3-haiku'.",
+          "enum": [
+            "gpt-4o-mini",
+            "llama-3.1-70b",
+            "claude-3-haiku",
+            "gemini-1.5-flash",
+            "gemini-1.5-pro",
+            "gpt-4o",
+            "llama3-70b-8192",
+            "bigscience/bloom"
+          ]
+        },
+        "promptRefiner.ollamaEndpoint": {
+          "type": "string",
+          "default": "http://localhost:11434",
+          "description": "Base URL for Ollama API (only used if provider is 'ollama')."
+        },
+        "promptRefiner.strictMode": {
+          "type": "boolean",
+          "default": true,
+          "description": "If true, enforces strict output format without conversational filler."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./ && npm run copy-templates",
+    "watch": "tsc -watch -p ./",
+    "copy-templates": "node scripts/copy-templates.js",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/glob": "^8.1.0",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "^20.19.30",
+    "@types/vscode": "^1.108.1",
+    "@typescript-eslint/eslint-plugin": "^5.59.1",
+    "@typescript-eslint/parser": "^5.59.1",
+    "@vscode/test-electron": "^2.3.2",
+    "eslint": "^8.39.0",
+    "glob": "^8.1.0",
+    "mocha": "^10.2.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "groq-sdk": "^0.37.0",
+    "openai": "^6.17.0"
+  }
+}

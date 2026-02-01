@@ -1,0 +1,26 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# TypeScript
+out/
+dist/
+*.tsbuildinfo
+
+# VS Code
+.vscode-test/
+*.vsix
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment (por si acaso se añaden .env en el futuro)
+.env
+.env.local
+.env.*.local
+
+# Build artifacts
+*.log
