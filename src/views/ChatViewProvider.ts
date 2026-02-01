@@ -226,6 +226,8 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     }
 
     private _getHtmlForWebview(webview: vscode.Webview) {
+        const iconUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'icon.png'));
+        
         return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -545,9 +547,29 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         .empty-state p {
             font-size: 12px;
         }
+        
+        /* Logo Section */
+        .logo-section {
+            padding: 15px 0 5px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--vscode-sideBar-background);
+        }
+        
+        .logo-section img {
+            width: 48px;
+            height: 48px;
+            object-fit: contain;
+        }
     </style>
 </head>
 <body>
+    <!-- Logo -->
+    <div class="logo-section">
+        <img src="${iconUri}" alt="AI Prompt Refiner Logo" />
+    </div>
+
     <!-- Header -->
     <div class="header">
         <input type="text" class="search-box" id="search-box" placeholder="Search history...">
