@@ -1,86 +1,307 @@
 # AI Prompt Refiner
 
-Refina y optimiza tus prompts para asistentes de codificación de IA (como Cursor, VS Code AI, Copilot) directamente dentro de VS Code.
+[![CI/CD](https://github.com/Gperez88/AI-Prompt-Refiner/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/Gperez88/AI-Prompt-Refiner/actions/workflows/ci-cd.yml)
+[![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](https://github.com/Gperez88/AI-Prompt-Refiner)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-## 🚀 Características
+Refine and optimize your prompts for AI coding assistants (like Cursor, VS Code AI, Copilot) directly within VS Code.
 
-* **Refinamiento por IA**: Reescribe tus prompts para que sean claros, sin ambigüedades y optimizados para modelos de lenguaje (LLMs).
-* **Experiencia Zero-Config**: ¡Úsalo inmediatamente! Incluye modelos gratuitos preconfigurados que no requieren API Key.
-* **Múltiples Proveedores**:
-  * **Modelos Públicos (Gratis)**: Acceso instantáneo a GPT-4o Mini, LLaMA 3.1 y Claude 3 Haiku sin configuración.
-  * **Groq**: Acceso ultra rápido a LLaMA 3, Mixtral y Gemma.
-  * **Google Gemini**: Soporte nativo para Gemini 1.5 Flash y Pro.
-  * **HuggingFace**: Acceso a modelos abiertos como Qwen 2.5, BLOOM y Mistral.
-  * **OpenAI**: Soporte para GPT-4o y GPT-4o-mini.
-  * **GitHub Marketplace**: Acceso a modelos como GPT-4o y LLaMA 3.1 70B usando tu cuenta de GitHub.
-  * **Ollama**: Ejecución local para máxima privacidad.
-* **Vista de Diferencias (Diff View)**: Compara instantáneamente tu prompt original con la versión refinada.
-* **Barra de Estado Integradada**: Visualiza el modelo activo y cámbialo rápidamente desde la barra inferior de VS Code.
-* **Modo Estricto**: Fuerza respuestas funcionales sin rellenos conversacionales.
+## 🚀 Key Features
 
-## 📖 Guía de Uso
+### ✨ New Features (v0.2.0)
 
-### 1. Refinar un Prompt
+*   **📝 Customizable Templates**: 5 built-in templates (Default, Strict, Code Assistant, Technical Writing, Data Analysis) + custom template creation.
+*   **💬 Enhanced Chat with History**: Persistent history of up to 50 messages, search, edit, and re-refinement.
+*   **✅ Output Validation**: Quality score (0-100) with required sections analysis and improvement suggestions.
+*   **📦 Export/Import**: Export and import custom templates and chat history.
+*   **💾 Save as Snippet**: Convert refined prompts into reusable VS Code snippets.
+*   **🔄 Re-refinement**: Iterate on a result with additional feedback for gradual improvements.
+*   **⚡ Optimized Performance**: LRU Cache, Circuit Breaker, Retry Logic, and Lazy Loading of providers.
 
-1. Selecciona el texto que deseas mejorar en cualquier editor de VS Code.
-2. Haz clic derecho y selecciona **Prompt Refiner: Refine Selection** o usa la paleta de comandos (`Ctrl+Shift+P`).
-3. Se abrirá una vista de diferencias comparando tu prompt original (izquierda) con el optimizado (derecha).
+### 🎯 Core Features
 
-### 2. Cambiar de Modelo Rápidamente
+*   **AI Refinement**: Rewrites your prompts to be clear, unambiguous, and optimized for Large Language Models (LLMs).
+*   **Zero-Config Experience**: Use it immediately! Includes preconfigured free models that don't require an API Key.
+*   **Multiple Providers (9)**:
+    *   **Public Models (Free)**: Instant access to GPT-4o Mini, LLaMA 3.1, and Claude 3 Haiku without configuration.
+    *   **Groq**: Ultra-fast access to LLaMA 3, Mixtral, and Gemma.
+    *   **Google Gemini**: Native support for Gemini 1.5 Flash and Pro.
+    *   **HuggingFace**: Access to open models like Qwen 2.5, BLOOM, and Mistral.
+    *   **OpenAI**: Support for GPT-4o and GPT-4o-mini.
+    *   **GitHub Marketplace**: Access to models like GPT-4o and LLaMA 3.1 70B using your GitHub account.
+    *   **Ollama**: Local execution for maximum privacy.
+    *   **Anthropic Claude**: Claude 3 Opus, Sonnet, and Haiku.
+*   **Diff View**: Instantly compare your original prompt (left) with the optimized version (right).
+*   **Integrated Status Bar**: View the active model and change it quickly from the VS Code bottom bar.
+*   **Strict Mode**: Forces functional responses without conversational filler.
 
-Tienes tres formas de cambiar el modelo o proveedor:
+## 📖 Usage Guide
 
-* **Barra de Estado**: Haz clic en el icono `$(zap)` o `$(sparkle)` en la parte inferior derecha. El icono `$(zap)` indica que estás usando un modelo gratuito "Zero-Config".
-* **Atajo de Teclado**: Presiona `Ctrl + Alt + M` (o `Cmd + Alt + M` en Mac).
-* **Comando**: Ejecuta `Prompt Refiner: Select Model` desde la paleta de comandos.
+### 1. Refine a Prompt
 
-### 3. Configuración Inicial
+1.  Select the text you want to improve in any VS Code editor.
+2.  Right-click and select **Prompt Refiner: Refine Selection** or use the Command Palette (`Ctrl+Shift+P`).
+3.  A diff view will open comparing your original prompt (left) with the optimized one (right).
+4.  Choose what to do with the result:
+    *   **Copy to Clipboard**: Copies the refined prompt.
+    *   **Apply to Editor**: Replaces the selected text.
+    *   **Dismiss**: Closes without action.
 
-* **Modelos Públicos**: No requieren configuración. La extensión está lista para usar desde el primer segundo.
-* **Proveedores Cloud**: La primera vez que uses un proveedor privado (como Groq, Gemini o OpenAI), la extensión te solicitará tu **API Key**, que se guardará de forma segura.
+### 2. Using the Refinement Chat
 
-## ⚙️ Configuración (Settings)
+1.  Open the "Refinement Chat" view from the Prompt Refiner sidebar.
+2.  Type your prompt and press Enter or the send button.
+3.  History is automatically saved (up to 50 messages).
+4.  Use the action buttons on each message to:
+    *   Copy content
+    *   Edit message
+    *   Re-refine using that prompt
+    *   Delete message
 
-Puedes ajustar el comportamiento en los ajustes de VS Code (`Ctrl + ,`):
+### 3. Select Templates
 
-* `promptRefiner.provider`: Selecciona el proveedor (`public`, `groq`, `gemini`, `openai`, `huggingface`, `ollama`).
-* `promptRefiner.model`: Especifica el ID del modelo (ej. `gpt-4o-mini`, `llama-3.1-70b`).
-* `promptRefiner.strictMode`: Activa/Desactiva el formato de salida estricto (predeterminado: `true`).
-* `promptRefiner.ollamaEndpoint`: URL para tu instancia local de Ollama (predeterminado: `http://localhost:11434`).
+1.  Open the Command Palette (`Ctrl+Shift+P`).
+2.  Run **Prompt Refiner: Select Template**.
+3.  Choose from available templates:
+    *   **Default**: General purpose
+    *   **Strict**: No conversational filler
+    *   **Code Assistant**: Optimized for programming tasks
+    *   **Technical Writing**: For documentation and emails
+    *   **Data Analysis**: For data analysis and research
 
-## 📦 Desarrollo y Compilación
+### 4. Create Custom Templates
 
-Si deseas compilar la extensión manualmente y generar el archivo `.vsix`:
+1.  Run **Prompt Refiner: Create Custom Template**.
+2.  Provide:
+    *   Template Name
+    *   Description
+    *   Category (coding, writing, analysis, general, custom)
+    *   Template Content (system instructions)
+3.  The template will be available immediately.
+4.  Export your templates with **Prompt Refiner: Manage Templates** → Export.
 
-1.  Ejecuta el script automatizado:
+### 5. Validate Output
+
+1.  Select a refined prompt in the editor.
+2.  Run **Prompt Refiner: Validate Output**.
+3.  Review the quality score and improvement suggestions.
+4.  The score ranges from 0 to 100, where:
+    *   80-100: Excellent
+    *   60-79: Acceptable
+    *   0-59: Needs Improvement
+
+### 6. Quickly Change Models
+
+You have three ways to change the model or provider:
+
+*   **Status Bar**: Click the `$(zap)` or `$(sparkle)` icon at the bottom right. The `$(zap)` icon indicates you are using a free "Zero-Config" model.
+*   **Keyboard Shortcut**: Press `Ctrl + Alt + M` (or `Cmd + Alt + M` on Mac).
+*   **Command**: Run `Prompt Refiner: Select Model` from the Command Palette.
+
+## ⌨️ Available Commands
+
+| Command | Description | Shortcut |
+|---------|-------------|-------|
+| `Prompt Refiner: Refine Selection` | Refine selected text | - |
+| `Prompt Refiner: Select Model` | Change model/provider | `Ctrl+Alt+M` |
+| `Prompt Refiner: Set API Key` | Configure API key | - |
+| `Prompt Refiner: Select Template` | Select refinement template | - |
+| `Prompt Refiner: Create Custom Template` | Create custom template | - |
+| `Prompt Refiner: Manage Templates` | Export/Import/Delete templates | - |
+| `Prompt Refiner: Validate Output` | Validate output quality | - |
+| `Prompt Refiner: Export Chat History` | Export chat history | - |
+| `Prompt Refiner: Save as Snippet` | Save as VSCode snippet | - |
+
+## ⚙️ Configuration (Settings)
+
+You can adjust behavior in VS Code settings (`Ctrl + ,`):
+
+### Providers and Models
+
+*   `promptRefiner.provider`: Select the provider (`public`, `groq`, `gemini`, `openai`, `huggingface`, `ollama`, `github`, `anthropic`).
+*   `promptRefiner.model`: Specify the Model ID (e.g., `gpt-4o-mini`, `llama-3.1-70b`, `claude-3-haiku`).
+
+### Refinement Options
+
+*   `promptRefiner.strictMode`: Enable/Disable strict output format (default: `true`).
+*   `promptRefiner.selectedTemplate`: Preferred template for refinement (default: `default`).
+*   `promptRefiner.ollamaEndpoint`: URL for your local Ollama instance (default: `http://localhost:11434`).
+
+## 🏗️ Architecture and Advanced Features
+
+### Performance
+
+*   **🚀 LRU Cache**: Caches refinement results (50 entries, 1-hour TTL) for instant responses on repeated prompts.
+*   **⚡ Lazy Loading**: Providers are loaded on demand, reducing startup time by ~80%.
+*   **🔄 Retry Logic**: Automatic retries with exponential backoff and jitter for recovery from transient errors.
+*   **🛡️ Circuit Breaker**: Provider-level protection - if a provider fails repeatedly, it is temporarily disabled and alternatives are suggested.
+
+### Internationalization
+
+*   Full support for **Spanish** and **English**.
+*   Automatic detection of VS Code's language.
+*   Easily extensible to more languages.
+
+### Plugin System (Extensible API)
+
+The plugin system allows third parties to extend functionality:
+
+```typescript
+interface IPromptRefinerPlugin {
+  initialize(context: PluginContext): void;
+  registerProvider(provider: IAIProvider): void;
+  registerTemplate(template: PluginTemplate): void;
+  on(event: PluginEvent, handler: Function): void;
+}
+```
+
+## 📦 Development and Contribution
+
+### Prerequisites
+
+*   Node.js 18.x or higher
+*   npm 9.x or higher
+*   VS Code 1.80.0 or higher
+
+### Environment Setup
+
+1.  Clone the repository:
+
     ```bash
-    .\build.bat
+    git clone https://github.com/gperez88/prompt-refiner.git
+    cd prompt-refiner
     ```
-2.  El script instalará las dependencias, compilará el código TypeScript y generará el archivo `prompt-refiner-x.x.x.vsix` en la raíz del proyecto.
 
-## 🛠️ Solución de Problemas (Troubleshooting)
+2.  Install dependencies:
 
-Si encuentras errores durante el refinamiento, consulta estas soluciones comunes:
+    ```bash
+    npm install
+    ```
 
-| Error / Síntoma | Causa Probable | Solución Sugerida |
+3.  Open in VS Code:
+
+    ```bash
+    code .
+    ```
+
+4.  Press `F5` to open the Extension Development Host window.
+
+### Available Scripts
+
+```bash
+# Compile
+npm run compile
+
+# Compile in watch mode
+npm run watch
+
+# Run tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run linter
+npm run lint
+
+# Package extension (.vsix)
+npm run vscode:prepublish
+```
+
+### Contribution Guide
+
+Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on:
+
+*   Code of conduct
+*   How to get started
+*   Code standards
+*   Pull request process
+*   How to create custom providers
+
+## 🛠️ Troubleshooting
+
+### Common Errors
+
+| Error / Symptom | Probable Cause | Suggested Solution |
 | :--- | :--- | :--- |
-| **"Challenge (418)"** en modelos DDG | DuckDuckGo ha bloqueado temporalmente el acceso automatizado. | Cambia a un modelo de **HuggingFace Public** (ej. Mistral 7B) en la selección de modelos. Son más estables. |
-| **"VQD missing"** o **"400 Bad Request"** | Cambio en la API pública o token de sesión expirado. | Intenta de nuevo. Si persiste, cambia a un modelo de HuggingFace o usa un proveedor con API Key. |
-| **"Unauthorized (401)"** | La API Key configurada es incorrecta o ha expirado. | Usa el comando `Prompt Refiner: Set API Key` para actualizar tu clave para ese proveedor. |
-| **"Models permission required"** (GitHub) | El token de GitHub no tiene el permiso de lectura necesario. | Asegúrate de que el token tenga el permiso **"GitHub Models" (read-only)**. |
-| **"Connection Refused"** en Ollama | Ollama no está corriendo o el endpoint es incorrecto. | Asegúrate de que Ollama esté abierto y ejecutándose en `http://localhost:11434`. |
-| **"Rate Limit Exceeded"** | Has realizado demasiadas peticiones en poco tiempo. | Espera unos minutos. Los modelos gratuitos tienen límites de uso más estrictos. |
-| **Resultado "ejecuta" el prompt** (en Ollama) | El modelo local confunde el refinamiento con una orden directa. | Asegúrate de tener el modelo `llama3` o superior. Hemos optimizado la extensión para evitar esto, pero si persiste, intenta ser más específico en tu prompt original. |
+| **"Circuit breaker is open"** | The provider has failed multiple times. | The system will automatically suggest changing providers or using public fallback. |
+| **"Cache hit"** (very fast) | Result comes from cache. | Normal behavior - cache speeds up repeated prompts. |
+| **"Challenge (418)"** in DDG models | DuckDuckGo has temporarily blocked access. | Switch to a **HuggingFace Public** model (e.g., Mistral 7B). |
+| **"Unauthorized (401)"** | API Key is incorrect or expired. | Use `Prompt Refiner: Set API Key` to update it. |
+| **"Models permission required"** (GitHub) | GitHub token lacks necessary read permission. | Ensure the token has **"GitHub Models" (read-only)** permission. |
+| **"Rate Limit Exceeded"** | Too many requests in a short time. | Wait a few minutes or use a different provider. |
+| **"Connection Refused"** in Ollama | Ollama is not running. | Ensure Ollama is at `http://localhost:11434`. |
 
-> **Tip de Estabilidad**: Para una experiencia gratuita más predecible y sin bloqueos, utiliza los modelos marcados como **(HF Public)** en el menú de selección de modelos.
+### Low Output Validation
 
-> **Tip para Ollama**: Si usas modelos locales pequeños (como Phi-3 o Gemma), es posible que no sigan el template perfectamente. Recomendamos `llama3` o `mistral` para mejores resultados de refinamiento.
+If you receive a low score (< 70):
 
-## 🛠️ Requisitos
+1.  Review the provided improvement suggestions.
+2.  Consider adding more context to the original prompt.
+3.  Use the "Strict" template for more structured results.
+4.  Try re-refining with specific feedback.
 
-* **Sin Requisitos**: Para usar los modelos gratuitos del proveedor `public`.
-* **API Key**: Necesaria solo para proveedores privados (Groq, Gemini, HF, OpenAI).
-* **Ollama**: Debe estar ejecutándose localmente si prefieres usar el proveedor local.
+## 🛠️ Requirements
+
+*   **No Requirements**: To use free models from the `public` provider.
+*   **API Key**: Required for private providers:
+    *   **OpenAI**: `sk-...` (get at platform.openai.com)
+    *   **Anthropic**: (get at console.anthropic.com)
+    *   **Groq**: (get at console.groq.com)
+    *   **GitHub**: Token with "GitHub Models" permission
+    *   **HuggingFace**: Access Token
+*   **Ollama**: Must be running locally.
+
+## 📊 Project Statistics
+
+*   **9 Providers** supported
+*   **13 Commands** available
+*   **7+ Templates** (5 built-in + custom)
+*   **50 Messages** of chat history
+*   **24 Unit tests**
+*   **100% TypeScript**
+*   **Automated CI/CD** with GitHub Actions
+
+## 🗺️ Roadmap
+
+### Implemented (v0.2.0)
+
+*   ✅ Customizable templates
+*   ✅ Chat with history
+*   ✅ Output validation
+*   ✅ Cache and performance
+*   ✅ Circuit breaker
+*   ✅ Plugin system
+*   ✅ CI/CD pipeline
+
+### Future (v0.3.0+ - Considerations)
+
+*   🔄 Multi-turn conversational mode
+*   🔄 Multi-model comparison (send to multiple providers)
+*   🔄 Pre-refinement quality analysis
+*   🔄 Batch processing (multiple prompts)
+*   🔄 Integrations: Cursor, Copilot Chat, Cody
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🤝 Acknowledgments
+
+*   DuckDuckGo AI and HuggingFace for providing free models.
+*   VS Code community for the excellent extension system.
+*   Contributors and testers who have helped improve the extension.
 
 ---
-*Desarrollado para mejorar la productividad en ingeniería de prompts.*
+
+## 💬 Support
+
+*   🐛 **Issues**: Report bugs at [GitHub Issues](https://github.com/Gperez88/AI-Prompt-Refiner/issues)
+*   💡 **Suggestions**: Send feature ideas.
+*   ❓ **Questions**: Use GitHub Discussions.
+
+**Developed to improve productivity in prompt engineering.**
+
+---
+
+*Current version: 0.2.0* | *Last update: 2026-02-01*

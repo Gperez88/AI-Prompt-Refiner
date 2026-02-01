@@ -39,50 +39,45 @@ export class PublicProvider implements IAIProvider {
     }
 
     private async refineDuckDuckGo(userPrompt: string, systemPrompt: string, modelId: string): Promise<string> {
-        try {
-            // Mapping internal IDs to DDG expected model names
-            let ddgModel = 'gpt-4o-mini';
-            if (modelId.includes('llama')) ddgModel = 'meta-llama/Llama-3.3-70B-Instruct-Turbo';
-            if (modelId.includes('mistral')) ddgModel = 'mistralai/Mistral-Small-24B-Instruct-2501';
-            if (modelId.includes('claude')) ddgModel = 'claude-3-haiku-20240307';
-            if (modelId.includes('o3-mini')) ddgModel = 'o3-mini';
-            
-            const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36';
-            
-            // 1. Get VQD token from status endpoint
-            const vqdResponse = await fetch('https://duckduckgo.com/duckchat/v1/status', {
-                headers: { 
-                    'x-vqd-accept': '1',
-                    'User-Agent': userAgent,
-                    'Cache-Control': 'no-cache',
-                    'Referer': 'https://duckduckgo.com/',
-                    'Origin': 'https://duckduckgo.com',
-                    'Accept': '*/*'
-                }
-            });
-
-            if (!vqdResponse.ok) {
-                throw new Error(`Failed to initialize session (Status: ${vqdResponse.status})`);
+        // Mapping internal IDs to DDG expected model names
+        let ddgModel = 'gpt-4o-mini';
+        if (modelId.includes('llama')) ddgModel = 'meta-llama/Llama-3.3-70B-Instruct-Turbo';
+        if (modelId.includes('mistral')) ddgModel = 'mistralai/Mistral-Small-24B-Instruct-2501';
+        if (modelId.includes('claude')) ddgModel = 'claude-3-haiku-20240307';
+        if (modelId.includes('o3-mini')) ddgModel = 'o3-mini';
+        
+        const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36';
+        
+        // 1. Get VQD token from status endpoint
+        const vqdResponse = await fetch('https://duckduckgo.com/duckchat/v1/status', {
+            headers: { 
+                'x-vqd-accept': '1',
+                'User-Agent': userAgent,
+                'Cache-Control': 'no-cache',
+                'Referer': 'https://duckduckgo.com/',
+                'Origin': 'https://duckduckgo.com',
+                'Accept': '*/*'
             }
+        });
 
-            // DuckDuckGo has updated their header from x-vqd-token to x-vqd-4
-            // We check both for maximum compatibility
-            const vqd = vqdResponse.headers.get('x-vqd-4') || vqdResponse.headers.get('x-vqd-token');
-            if (!vqd) {
-                // Last ditch effort: search for VQD in the body if it's not in headers
-                const body = await vqdResponse.text();
-                const vqdMatch = body.match(/vqd=["']?([^"']+)["']?/);
-                if (vqdMatch) {
-                    return this.executeDDGChat(userPrompt, systemPrompt, ddgModel, vqdMatch[1], userAgent);
-                }
-                throw new Error('No VQD token received from DuckDuckGo.');
-            }
-
-            return await this.executeDDGChat(userPrompt, systemPrompt, ddgModel, vqd, userAgent);
-
-        } catch (error: any) {
-            throw error;
+        if (!vqdResponse.ok) {
+            throw new Error(`Failed to initialize session (Status: ${vqdResponse.status})`);
         }
+
+        // DuckDuckGo has updated their header from x-vqd-token to x-vqd-4
+        // We check both for maximum compatibility
+        const vqd = vqdResponse.headers.get('x-vqd-4') || vqdResponse.headers.get('x-vqd-token');
+        if (!vqd) {
+            // Last ditch effort: search for VQD in the body if it's not in headers
+            const body = await vqdResponse.text();
+            const vqdMatch = body.match(/vqd=["']?([^"']+)["']?/);
+            if (vqdMatch) {
+                return this.executeDDGChat(userPrompt, systemPrompt, ddgModel, vqdMatch[1], userAgent);
+            }
+            throw new Error('No VQD token received from DuckDuckGo.');
+        }
+
+        return await this.executeDDGChat(userPrompt, systemPrompt, ddgModel, vqd, userAgent);
     }
 
     private async executeDDGChat(userPrompt: string, systemPrompt: string, ddgModel: string, vqd: string, userAgent: string): Promise<string> {

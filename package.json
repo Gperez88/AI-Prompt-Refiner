@@ -4,28 +4,85 @@
   "description": "Refine and optimize prompts for AI coding assistants using LLMs.",
   "version": "0.1.0",
   "publisher": "gperez88",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Gperez88/AI-Prompt-Refiner"
+  },
+  "license": "MIT",
   "icon": "assets/icon.png",
   "engines": {
-    "vscode": "^1.108.0"
+    "vscode": "^1.104.0"
   },
-  "categories": [
-    "Other"
-  ],
+	"categories": [
+		"AI",
+		"Chat",
+		"Programming Languages",
+		"Education",
+		"Snippets",
+		"Testing"
+	],
+	"keywords": [
+		"cline",
+		"claude",
+		"dev",
+		"mcp",
+		"openrouter",
+		"coding",
+		"agent",
+		"autonomous",
+		"chatgpt",
+		"sonnet",
+		"ai",
+		"llama"
+	],
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "promptRefiner.refineSelection",
-        "title": "Prompt Refiner: Refine Selection"
+        "title": "Prompt Refiner: Refine Selection",
+        "category": "Prompt Refiner"
       },
       {
         "command": "promptRefiner.selectModel",
-        "title": "Prompt Refiner: Select Model"
+        "title": "Prompt Refiner: Select Model",
+        "category": "Prompt Refiner"
       },
       {
         "command": "promptRefiner.setApiKey",
-        "title": "Prompt Refiner: Set API Key"
+        "title": "Prompt Refiner: Set API Key",
+        "category": "Prompt Refiner"
+      },
+      {
+        "command": "promptRefiner.selectTemplate",
+        "title": "Prompt Refiner: Select Template",
+        "category": "Prompt Refiner"
+      },
+      {
+        "command": "promptRefiner.createTemplate",
+        "title": "Prompt Refiner: Create Custom Template",
+        "category": "Prompt Refiner"
+      },
+      {
+        "command": "promptRefiner.manageTemplates",
+        "title": "Prompt Refiner: Manage Templates",
+        "category": "Prompt Refiner"
+      },
+      {
+        "command": "promptRefiner.validateOutput",
+        "title": "Prompt Refiner: Validate Output",
+        "category": "Prompt Refiner"
+      },
+      {
+        "command": "promptRefiner.exportHistory",
+        "title": "Prompt Refiner: Export Chat History",
+        "category": "Prompt Refiner"
+      },
+      {
+        "command": "promptRefiner.saveAsSnippet",
+        "title": "Prompt Refiner: Save as Snippet",
+        "category": "Prompt Refiner"
       }
     ],
     "keybindings": [
@@ -114,20 +171,24 @@
     "copy-templates": "node scripts/copy-templates.js",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui"
   },
   "devDependencies": {
     "@types/glob": "^8.1.0",
     "@types/mocha": "^10.0.1",
     "@types/node": "^20.19.30",
-    "@types/vscode": "^1.108.1",
+    "@types/vscode": "^1.104.0",
     "@typescript-eslint/eslint-plugin": "^5.59.1",
     "@typescript-eslint/parser": "^5.59.1",
-    "@vscode/test-electron": "^2.3.2",
+    "@vscode/test-electron": "^2.5.2",
     "eslint": "^8.39.0",
     "glob": "^8.1.0",
     "mocha": "^10.2.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
