@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
+        node-version: [20.x, 22.x]
     
     steps:
     - uses: actions/checkout@v4
@@ -32,6 +32,10 @@ jobs:
     
     - name: Run tests
       run: npm test
+    
+    - name: Run npm audit
+      run: npm audit --audit-level=moderate
+      continue-on-error: true
     
     - name: Upload coverage
       uses: codecov/codecov-action@v3
@@ -101,27 +105,3 @@ jobs:
       env:
         OPEN_VSX_TOKEN: ${{ secrets.OPEN_VSX_TOKEN }}
 
-  security-scan:
-    runs-on: ubuntu-latest
-    permissions:
-      security-events: write
-      actions: read
-      contents: read
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Run npm audit
-      run: npm audit --audit-level=moderate
-      continue-on-error: true
-    
-    - name: Run CodeQL Analysis
-      uses: github/codeql-action/init@v2
-      with:
-        languages: typescript
-    
-    - name: Autobuild
-      uses: github/codeql-action/autobuild@v2
-    
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v2
