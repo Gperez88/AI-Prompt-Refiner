@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { randomBytes } from 'crypto';
 import { logger } from './Logger';
 
 /**
@@ -183,9 +184,9 @@ export class ChatHistoryManager {
     }
 
     /**
-     * Generate a unique ID for messages
+     * Generate a unique ID for messages using cryptographically secure randomness
      */
     private generateId(): string {
-        return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        return `${Date.now()}-${randomBytes(8).toString('hex')}`;
     }
 }

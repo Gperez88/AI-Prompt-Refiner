@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { randomBytes } from 'crypto';
 import { logger } from './Logger';
 
 /**
@@ -735,10 +736,10 @@ export class SessionManager {
     // ==================== UTILITY ====================
 
     /**
-     * Generate a unique ID
+     * Generate a unique ID using cryptographically secure randomness
      */
     private generateId(): string {
-        return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        return `${Date.now()}-${randomBytes(8).toString('hex')}`;
     }
 
     /**
