@@ -83,6 +83,26 @@
         "command": "promptRefiner.saveAsSnippet",
         "title": "%command.saveAsSnippet.title%",
         "category": "Prompt Refiner"
+      },
+      {
+        "command": "promptRefiner.refreshModels",
+        "title": "%command.refreshModels.title%",
+        "category": "Prompt Refiner"
+      },
+      {
+        "command": "promptRefiner.showProvidersStatus",
+        "title": "Show Providers Configuration Status",
+        "category": "Prompt Refiner"
+      },
+      {
+        "command": "promptRefiner.clearApiKey",
+        "title": "Clear Provider API Key",
+        "category": "Prompt Refiner"
+      },
+      {
+        "command": "promptRefiner.switchProvider",
+        "title": "Switch Between Configured Providers",
+        "category": "Prompt Refiner"
       }
     ],
     "keybindings": [
@@ -144,10 +164,10 @@
             "gpt-4o-mini",
             "llama-3.1-70b",
             "claude-3-haiku",
-            "gemini-1.5-flash",
-            "gemini-1.5-pro",
+            "gemini-flash",
+            "gemini-pro",
             "gpt-4o",
-            "llama3-70b-8192",
+            "groq-llama3-70b",
             "bigscience/bloom"
           ]
         },
@@ -168,13 +188,11 @@
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./ && npm run copy-templates",
     "watch": "tsc -watch -p ./",
-    "copy-templates": "node scripts/copy-templates.js",
-    "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
     "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
-    "test:ui": "vitest --ui"
+    "copy-templates": "node scripts/copy-templates.js",
+    "build": "npm run compile && npm run package",
+    "update-models": "ts-node scripts/update-models.ts"
   },
   "devDependencies": {
     "@types/glob": "^8.1.0",

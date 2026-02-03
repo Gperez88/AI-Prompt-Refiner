@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { PromptRefinerService } from './services/PromptRefinerService';
-import { selectModel, setApiKeyCommand } from './commands/settingsCommands';
+import { selectModel, setApiKeyCommand, showProvidersStatus, clearApiKeyCommand, switchProviderCommand } from './commands/settingsCommands';
 import { registerTemplateCommands } from './commands/templateCommands';
 import { ConfigurationManager } from './services/ConfigurationManager';
 import { ChatViewProvider } from './views/ChatViewProvider';
@@ -191,6 +191,31 @@ export function activate(context: vscode.ExtensionContext) {
     // Register Set API Key Command
     context.subscriptions.push(vscode.commands.registerCommand('promptRefiner.setApiKey', async () => {
         await setApiKeyCommand();
+    }));
+
+    // Register Show Providers Status Command
+    context.subscriptions.push(vscode.commands.registerCommand('promptRefiner.showProvidersStatus', async () => {
+        await showProvidersStatus();
+    }));
+
+    // Register Clear API Key Command
+    context.subscriptions.push(vscode.commands.registerCommand('promptRefiner.clearApiKey', async () => {
+        await clearApiKeyCommand();
+    }));
+
+    // Register Switch Provider Command
+    context.subscriptions.push(vscode.commands.registerCommand('promptRefiner.switchProvider', async () => {
+        await switchProviderCommand();
+        updateStatusBarItem(); // Update status bar to show new provider
+    }));
+
+    // Register Refresh Models Command
+    context.subscriptions.push(vscode.commands.registerCommand('promptRefiner.refreshModels', async () => {
+        const { ModelRegistry } = await import('./services/ModelRegistry');
+        const registry = ModelRegistry.getInstance();
+        await registry.initialize();
+        await registry.forceRefresh();
+        vscode.window.showInformationMessage('✅ Supported models refreshed successfully!');
     }));
 
     // Register Template Commands
