@@ -206,9 +206,9 @@ export class PromptRefinerService implements IPromptRefinerService {
                 if (action === 'Switch Provider') {
                     await vscode.commands.executeCommand('promptRefiner.selectModel');
                 } else if (action === 'Use Fallback') {
-                    // Force switch to public provider
-                    await ConfigurationManager.getInstance().setProviderId('public');
-                    vscode.window.showInformationMessage('Switched to public (free) provider');
+                    // Force switch to GitHub provider (free providers temporarily disabled)
+                    await ConfigurationManager.getInstance().setProviderId('github');
+                    vscode.window.showInformationMessage('Switched to GitHub Marketplace provider');
                     
                     // Retry with new provider
                     return this.refine(userPrompt, token, options);

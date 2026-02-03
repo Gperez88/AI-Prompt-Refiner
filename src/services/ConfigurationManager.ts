@@ -22,7 +22,7 @@ export class ConfigurationManager {
     }
 
     public getProviderId(): string {
-        return vscode.workspace.getConfiguration('promptRefiner').get<string>('provider', 'public');
+        return vscode.workspace.getConfiguration('promptRefiner').get<string>('provider', 'github');
     }
 
     public getModelId(): string {

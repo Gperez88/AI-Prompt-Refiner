@@ -336,7 +336,7 @@ function updateStatusBarItem(): void {
     const provider = config.getProviderId();
     
     // Show different icon based on provider type
-    const icon = provider === 'public' || provider === 'ollama' ? '$(zap)' : '$(sparkle)';
+    const icon = provider === 'ollama' ? '$(zap)' : '$(sparkle)';
     
     statusBarItem.text = `${icon} ${model}`;
     statusBarItem.tooltip = new vscode.MarkdownString(

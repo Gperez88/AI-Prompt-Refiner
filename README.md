@@ -13,7 +13,7 @@
     <img src="https://img.shields.io/badge/Install-Now-blue?style=for-the-badge&logo=visualstudiocode" alt="Install">
   </a>
   <a href="#features">
-    <img src="https://img.shields.io/badge/Features-9_Providers-green?style=for-the-badge" alt="Features">
+    <img src="https://img.shields.io/badge/Features-Multi--Session-green?style=for-the-badge" alt="Features">
   </a>
 </p>
 
@@ -23,7 +23,7 @@
 
 **AI Prompt Refiner** takes your rough, unclear prompts and transforms them into well-structured, effective instructions that get better results from AI assistants like ChatGPT, Claude, or GitHub Copilot.
 
-
+---
 
 ## 🚀 Installation
 
@@ -43,18 +43,20 @@
 ### Method 1: Quick Refine (Fastest)
 
 1. **Select** any text in your editor
-2. **Right-click** → "Prompt Refiner: Refine Selection"
+2. **Right-click** → "Refine Selection"
 3. **Get** a perfectly structured prompt instantly
 
-### Method 2: Chat Interface
+### Method 2: Chat Interface with Multi-Session Support
 
-1. Open the **"Refinement Chat"** panel from the sidebar
-2. Type your rough prompt
-3. Get an optimized version with conversation history
+1. Open the **"Chat"** panel from the sidebar
+2. Create multiple sessions for different tasks
+3. Switch between sessions without losing context
+4. Type your rough prompt and get an optimized version
+5. All your conversation history is preserved
 
 ### Method 3: Templates
 
-Choose from 5 smart templates based on your task:
+Choose from smart templates based on your task:
 - 💻 **Code** - Programming and development
 - 📝 **Writing** - Documentation and content
 - 📊 **Analysis** - Data and research tasks
@@ -75,10 +77,11 @@ Choose from 5 smart templates based on your task:
 - 🎨 Consistent quality across all prompts
 - 🚀 More productive conversations with AI
 
-### Completely Free
-- 🆓 **Zero cost** with free providers (DuckDuckGo, HuggingFace)
-- 🔒 **Private** - use local AI with Ollama
-- 💎 **Premium** - optional paid providers (OpenAI, Claude, etc.)
+### Multi-Session Chat
+- 💬 Create separate sessions for different tasks
+- 🔄 Switch between conversations seamlessly
+- 💾 Never lose your chat history
+- 📤 Export individual sessions
 
 ---
 
@@ -97,14 +100,16 @@ Choose from 5 smart templates based on your task:
 ## 🎨 Key Features
 
 ### 💬 AI-Powered Refinement
-- Works with **9 AI providers**
-- Free models available - start immediately
-- Local AI support for privacy
+- Works with **6 AI providers** (GitHub, OpenAI, Gemini, Groq, HuggingFace, Ollama)
+- Local AI support for privacy with Ollama
+- Premium providers for best results
 
-### 💾 Smart History
+### 💾 Smart Multi-Session History
+- Create and manage multiple chat sessions
 - Never lose your best prompts
 - Search through previous refinements
 - Export your favorites
+- Archive old sessions
 
 ### 🎭 Templates
 - **Code:** Optimized for programming
@@ -113,9 +118,10 @@ Choose from 5 smart templates based on your task:
 - **Strict:** No fluff, just results
 
 ### 🎨 Beautiful UI
-- Built-in chat interface
-- Side-by-side comparison
+- Built-in chat interface with session management
+- Session selector with recent sessions
 - Dark & light themes
+- i18n support (English/Spanish)
 
 ---
 
@@ -200,21 +206,30 @@ Analysis report with charts and recommendations
 
 ---
 
-## 🔧 Quick Configuration (Optional)
+## 🔧 Configuration
 
 Click the **⚡ icon** in your status bar to:
 - Choose AI provider
-- Select different models  
-- Add API keys (only for premium providers)
+- Select different models
+- Add API keys (required for all providers except Ollama)
 
-**No setup required!** Works immediately with free providers.
+### Available Providers
+
+1. **GitHub Marketplace** - Free tier available with GitHub token
+2. **OpenAI** - GPT-4o, GPT-4o Mini (requires API key)
+3. **Google Gemini** - Gemini 1.5 Flash/Pro (requires API key)
+4. **Groq** - Ultra-fast inference (requires API key)
+5. **HuggingFace** - Open source models (requires API key)
+6. **Ollama** - Local AI, no API key needed
+
+**Note:** Free providers (DuckDuckGo, HuggingFace public inference) are temporarily disabled due to service unavailability.
 
 ---
 
 ## 🤔 FAQ
 
 **Is it free?**
-> Yes! Use free providers without any API key. Premium providers (OpenAI, Claude) are optional.
+> Yes and no. GitHub Marketplace has a free tier. Other providers require API keys. Ollama is completely free and private.
 
 **Does it work offline?**
 > Yes! Use [Ollama](https://ollama.ai) with local AI models.
@@ -232,10 +247,11 @@ Click the **⚡ icon** in your status bar to:
 
 ## ⭐ Pro Tips
 
-1. **Save Snippets** - Right-click any refined prompt to save it for later
-2. **Use Templates** - Match the template to your task type for best results
-3. **Iterate** - Click "Re-refine" to improve prompts with more context
+1. **Multi-Session Workflow** - Create separate sessions for different projects or topics
+2. **Save Sessions** - Export important sessions as JSON files
+3. **Use Templates** - Match the template to your task type for best results
 4. **History** - All your prompts are saved automatically - search and reuse!
+5. **Clear Sessions** - Archive or delete old sessions to keep your workspace organized
 
 ---
 
@@ -245,10 +261,19 @@ Click the **⚡ icon** in your status bar to:
 → Reload VS Code: `Ctrl+Shift+P` → "Reload Window"
 
 **"No provider configured"**
-→ Click the ⚡ icon in status bar and select "Public (Free)"
+→ Click the ⚡ icon in status bar and select a provider, then add your API key
+
+**"API Key not working"**
+→ Make sure you've entered the correct API key format for your provider
 
 **"Slow responses"**
 → Switch to a different provider or use local Ollama
+
+---
+
+## 📝 Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
 
 ---
 
