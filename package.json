@@ -1,9 +1,9 @@
 {
-  "name": "prompt-refiner",
+  "name": "ai-prompt-refiner",
   "displayName": "AI Prompt Refiner",
-  "description": "Refine and optimize prompts for AI coding assistants using LLMs.",
-  "version": "0.1.0",
-  "publisher": "gperez88",
+  "description": "Transform your messy prompts into clear, effective AI instructions.",
+  "version": "1.1.0",
+  "publisher": "Gperez88",
   "repository": {
     "type": "git",
     "url": "https://github.com/Gperez88/AI-Prompt-Refiner"
@@ -13,75 +13,75 @@
   "engines": {
     "vscode": "^1.104.0"
   },
-	"categories": [
-		"AI",
-		"Chat",
-		"Programming Languages",
-		"Education",
-		"Snippets",
-		"Testing"
-	],
-	"keywords": [
-		"cline",
-		"claude",
-		"dev",
-		"mcp",
-		"openrouter",
-		"coding",
-		"agent",
-		"autonomous",
-		"chatgpt",
-		"sonnet",
-		"ai",
-		"llama"
-	],
+  "categories": [
+    "AI",
+    "Chat",
+    "Programming Languages",
+    "Education",
+    "Snippets",
+    "Testing"
+  ],
+  "keywords": [
+    "cline",
+    "claude",
+    "dev",
+    "mcp",
+    "openrouter",
+    "coding",
+    "agent",
+    "autonomous",
+    "chatgpt",
+    "sonnet",
+    "ai",
+    "llama"
+  ],
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "promptRefiner.refineSelection",
-        "title": "Prompt Refiner: Refine Selection",
+        "title": "%command.refineSelection.title%",
         "category": "Prompt Refiner"
       },
       {
         "command": "promptRefiner.selectModel",
-        "title": "Prompt Refiner: Select Model",
+        "title": "%command.selectModel.title%",
         "category": "Prompt Refiner"
       },
       {
         "command": "promptRefiner.setApiKey",
-        "title": "Prompt Refiner: Set API Key",
+        "title": "%command.setApiKey.title%",
         "category": "Prompt Refiner"
       },
       {
         "command": "promptRefiner.selectTemplate",
-        "title": "Prompt Refiner: Select Template",
+        "title": "%command.selectTemplate.title%",
         "category": "Prompt Refiner"
       },
       {
         "command": "promptRefiner.createTemplate",
-        "title": "Prompt Refiner: Create Custom Template",
+        "title": "%command.createTemplate.title%",
         "category": "Prompt Refiner"
       },
       {
         "command": "promptRefiner.manageTemplates",
-        "title": "Prompt Refiner: Manage Templates",
+        "title": "%command.manageTemplates.title%",
         "category": "Prompt Refiner"
       },
       {
         "command": "promptRefiner.validateOutput",
-        "title": "Prompt Refiner: Validate Output",
+        "title": "%command.validateOutput.title%",
         "category": "Prompt Refiner"
       },
       {
         "command": "promptRefiner.exportHistory",
-        "title": "Prompt Refiner: Export Chat History",
+        "title": "%command.exportHistory.title%",
         "category": "Prompt Refiner"
       },
       {
         "command": "promptRefiner.saveAsSnippet",
-        "title": "Prompt Refiner: Save as Snippet",
+        "title": "%command.saveAsSnippet.title%",
         "category": "Prompt Refiner"
       }
     ],
@@ -107,13 +107,13 @@
         {
           "type": "webview",
           "id": "promptRefiner.chatView",
-          "name": "Chat de Refinamiento",
+          "name": "%view.chat.title%",
           "icon": "assets/icon.svg"
         },
         {
           "type": "webview",
           "id": "promptRefiner.settingsView",
-          "name": "Configuración",
+          "name": "%view.settings.title%",
           "icon": "assets/icon.svg"
         }
       ]

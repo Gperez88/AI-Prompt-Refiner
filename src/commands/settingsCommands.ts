@@ -36,12 +36,13 @@ export async function setApiKeyCommand() {
 
 export async function selectModel() {
     const models = [
-        { label: '$(zap) GPT-4o Mini (Gratis - DDG)', description: 'gpt-4o-mini', provider: 'public' },
-        { label: '$(zap) LLaMA 3.1 70B (Gratis - DDG)', description: 'llama-3.1-70b', provider: 'public' },
-        { label: '$(zap) Claude 3 Haiku (Gratis - DDG)', description: 'claude-3-haiku', provider: 'public' },
-        { label: '$(zap) Mistral 7B (HF Public - Estable)', description: 'hf:mistralai/Mistral-7B-Instruct-v0.3', provider: 'public' },
-        { label: '$(zap) Qwen 2.5 7B (HF Public)', description: 'hf:Qwen/Qwen2.5-7B-Instruct', provider: 'public' },
-        { label: '$(zap) Phi-3.5 Mini (HF Public)', description: 'hf:microsoft/Phi-3.5-mini-instruct', provider: 'public' },
+        // Free providers temporarily disabled
+        // { label: '$(zap) GPT-4o Mini (Gratis - DDG)', description: 'gpt-4o-mini', provider: 'public' },
+        // { label: '$(zap) LLaMA 3.1 70B (Gratis - DDG)', description: 'llama-3.1-70b', provider: 'public' },
+        // { label: '$(zap) Claude 3 Haiku (Gratis - DDG)', description: 'claude-3-haiku', provider: 'public' },
+        // { label: '$(zap) Mistral 7B (HF Public - Estable)', description: 'hf:mistralai/Mistral-7B-Instruct-v0.3', provider: 'public' },
+        // { label: '$(zap) Qwen 2.5 7B (HF Public)', description: 'hf:Qwen/Qwen2.5-7B-Instruct', provider: 'public' },
+        // { label: '$(zap) Phi-3.5 Mini (HF Public)', description: 'hf:microsoft/Phi-3.5-mini-instruct', provider: 'public' },
         { label: 'Google Gemini 1.5 Flash', description: 'gemini-1.5-flash', provider: 'gemini' },
         { label: 'Google Gemini 1.5 Pro', description: 'gemini-1.5-pro', provider: 'gemini' },
         { label: 'OpenAI GPT-4o', description: 'gpt-4o', provider: 'openai' },

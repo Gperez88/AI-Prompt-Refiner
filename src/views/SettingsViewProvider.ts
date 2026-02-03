@@ -31,10 +31,10 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
             const config = ConfigurationManager.getInstance();
             switch (data.type) {
             case 'saveSettings': {
-                const { provider, model, apiKey, ollamaEndpoint } = data.value;
+                const { provider, model, apiKey, ollamaEndpoint, strictMode } = data.value;
                     
                 // Validate API key if provided
-                if (apiKey && apiKey !== '********' && provider !== 'public' && provider !== 'ollama') {
+                if (apiKey && apiKey !== '********' && provider !== 'ollama') {
                     const validation = InputValidator.validateApiKey(apiKey, provider);
                     if (!validation.valid) {
                         this._view?.webview.postMessage({
@@ -48,8 +48,14 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
                 try {
                     await config.setProviderId(provider);
                     await config.setModelId(model);
+                    
+                    // Save strict mode setting
+                    if (strictMode !== undefined) {
+                        await vscode.workspace.getConfiguration('promptRefiner').update('strictMode', strictMode, vscode.ConfigurationTarget.Global);
+                    }
                         
-                    if (apiKey !== undefined && apiKey !== '********') {
+                    // Only save API key if it's not empty and not the masked placeholder
+                    if (apiKey && apiKey !== '********' && apiKey.trim() !== '') {
                         await config.setApiKey(provider, apiKey);
                     }
                         
@@ -59,7 +65,7 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
                         
                     vscode.window.showInformationMessage(t('settingsSaved'));
                     this._updateHtml(); // Refresh UI
-                    logger.info('Settings saved', { provider, model });
+                    logger.info('Settings saved', { provider, model, strictMode });
                 } catch (error) {
                     logger.error('Failed to save settings', error as Error);
                     this._view?.webview.postMessage({
@@ -91,7 +97,7 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
         const hasKey = await config.getApiKey(currentProvider);
 
         const providers = [
-            { id: 'public', name: t('provider') + ': ' + 'Free (DDG/HF)', description: 'No API key required. Uses free public models.' },
+            // { id: 'public', name: t('provider') + ': ' + 'Free (DDG/HF)', description: 'No API key required. Uses free public models. [TEMPORARILY DISABLED]' },
             { id: 'github', name: t('provider') + ': ' + 'GitHub Marketplace', description: 'Requires GitHub token with Models permission.' },
             { id: 'openai', name: t('provider') + ': ' + 'OpenAI', description: 'Requires OpenAI API key (sk-...).' },
             { id: 'gemini', name: t('provider') + ': ' + 'Google Gemini', description: 'Requires Google AI API key.' },
@@ -100,12 +106,13 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
         ];
 
         const modelsByProvider: Record<string, {id: string, name: string, description: string}[]> = {
-            'public': [
-                { id: 'gpt-4o-mini', name: 'GPT-4o Mini', description: 'Fast and efficient for most tasks' },
-                { id: 'llama-3.1-70b', name: 'LLaMA 3.1 70B', description: 'Large open-source model' },
-                { id: 'claude-3-haiku', name: 'Claude 3 Haiku', description: 'Fast and cost-effective' },
-                { id: 'hf:mistralai/Mistral-7B-Instruct-v0.3', name: 'Mistral 7B (HF)', description: 'Stable public model' }
-            ],
+            // Free providers temporarily disabled
+            // 'public': [
+            //     { id: 'gpt-4o-mini', name: 'GPT-4o Mini', description: 'Fast and efficient for most tasks' },
+            //     { id: 'llama-3.1-70b', name: 'LLaMA 3.1 70B', description: 'Large open-source model' },
+            //     { id: 'claude-3-haiku', name: 'Claude 3 Haiku', description: 'Fast and cost-effective' },
+            //     { id: 'hf:mistralai/Mistral-7B-Instruct-v0.3', name: 'Mistral 7B (HF)', description: 'Stable public model' }
+            // ],
             'github': [
                 { id: 'gpt-4o', name: 'GPT-4o', description: 'Latest GPT-4 optimized model' },
                 { id: 'gpt-4o-mini', name: 'GPT-4o Mini', description: 'Smaller, faster version' },
@@ -160,6 +167,18 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
                         margin-bottom: 6px;
                         font-size: 12px;
                         font-weight: 500;
+                    }
+                    .checkbox-label {
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        cursor: pointer;
+                        margin-bottom: 0;
+                    }
+                    .checkbox-label input[type="checkbox"] {
+                        width: auto;
+                        margin: 0;
+                        cursor: pointer;
                     }
                     select, input {
                         width: 100%;
@@ -232,7 +251,7 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
             </head>
             <body>
                 <div class="info-box">
-                    <strong>💡 Tip:</strong> Start with "Free (DDG/HF)" provider for instant use without API keys.
+                    <strong>💡 Tip:</strong> Free providers (DuckDuckGo/HuggingFace) are temporarily disabled. Please use GitHub Marketplace, OpenAI, Gemini, Groq, or Ollama (local).
                 </div>
 
                 <div class="section">
@@ -270,9 +289,9 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
                     <div class="section-title">Options</div>
                     
                     <div class="form-group">
-                        <label>
+                        <label class="checkbox-label">
                             <input type="checkbox" id="strict-mode" ${isStrictMode ? 'checked' : ''}>
-                            ${t('strictMode')}
+                            <span>${t('strictMode')}</span>
                         </label>
                         <div class="hint">${t('strictModeHint')}</div>
                     </div>
@@ -302,10 +321,19 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
                         const provider = providerSelect.value;
                         const providerData = modelsByProvider[provider] || [];
                         
+                        // Save current selection before updating
+                        const previousSelection = modelSelect.value;
+                        
                         // Update models dropdown
-                        const currentModelId = '${currentModel}';
+                        // If previous selection is valid for new provider, keep it; otherwise use saved model or first model
+                        const modelToSelect = providerData.find(m => m.id === previousSelection) 
+                            ? previousSelection 
+                            : providerData.find(m => m.id === '${currentModel}')?.id 
+                            || providerData[0]?.id 
+                            || '${currentModel}';
+                        
                         modelSelect.innerHTML = providerData.map(m => 
-                            \`<option value="\${m.id}" \${m.id === currentModelId ? 'selected' : ''}>\${m.name}</option>\`
+                            \`<option value="\${m.id}" \${m.id === modelToSelect ? 'selected' : ''}>\${m.name}</option>\`
                         ).join('');
                         
                         // Update hints
@@ -313,7 +341,7 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
                         modelHint.textContent = selectedModel?.description || '';
                         
                         // Show/hide API key field
-                        const needsKey = provider !== 'public' && provider !== 'ollama';
+                        const needsKey = provider !== 'ollama';
                         apiKeyGroup.classList.toggle('hidden', !needsKey);
                         ollamaGroup.classList.toggle('hidden', provider !== 'ollama');
 

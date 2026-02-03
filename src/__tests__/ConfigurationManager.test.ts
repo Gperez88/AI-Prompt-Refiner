@@ -45,7 +45,7 @@ describe('ConfigurationManager', () => {
     it('should return default provider when not configured', () => {
       // mockConfig.get returns defaultValue when called
       const provider = configManager.getProviderId();
-      expect(provider).toBe('public');
+      expect(provider).toBe('github');
     });
 
     it('should return configured provider', () => {

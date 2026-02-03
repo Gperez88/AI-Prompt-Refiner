@@ -1,5 +1,7 @@
 import { logger } from '../services/Logger';
 
+import { randomInt } from 'crypto';
+
 /**
  * Retry configuration
  */
@@ -89,8 +91,8 @@ function calculateDelay(attempt: number, config: RetryConfig): number {
     // Exponential backoff: baseDelay * 2^(attempt-1)
     const exponentialDelay = config.baseDelayMs * Math.pow(2, attempt - 1);
     
-    // Add jitter (±25%) to prevent thundering herd
-    const jitter = exponentialDelay * 0.25 * (Math.random() * 2 - 1);
+    // Add jitter (±25%) to prevent thundering herd using secure randomness
+    const jitter = exponentialDelay * 0.25 * ((randomInt(0, 1000) / 1000) * 2 - 1);
     
     // Cap at maxDelay
     return Math.min(exponentialDelay + jitter, config.maxDelayMs);

@@ -1,0 +1,15 @@
+{
+  "extension.displayName": "AI Prompt Refiner",
+  "extension.description": "Transform vague prompts into production-ready masterpieces",
+  "view.chat.title": "Chat",
+  "view.settings.title": "Configuration",
+  "command.refineSelection.title": "Refine Selection",
+  "command.selectModel.title": "Select Model",
+  "command.setApiKey.title": "Set API Key",
+  "command.selectTemplate.title": "Select Template",
+  "command.createTemplate.title": "Create Custom Template",
+  "command.manageTemplates.title": "Manage Templates",
+  "command.validateOutput.title": "Validate Output",
+  "command.exportHistory.title": "Export Chat History",
+  "command.saveAsSnippet.title": "Save as Snippet"
+}
