@@ -4,6 +4,37 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.3.0] - 2026-02-04
+
+### Added
+
+- **Role System**
+  - Each session can now have a specific role that defines how the AI assistant approaches your prompts
+  - Four predefined roles available:
+    - 💻 **Programmer** - Technical precision, code best practices, edge cases handling
+    - ✍️ **Writer** - Clarity, tone adaptation, audience awareness, accessibility focus
+    - 🔬 **Researcher** - Accuracy, evidence-based analysis, multiple perspectives
+    - 📊 **Analyst** - Pattern recognition, data-driven insights, problem decomposition
+  - Role selection during session creation via VS Code: Quick Pick
+  - Roles are stored in session metadata and persist across VS Code: reloads
+  - Different roles refine the same prompt differently based on their expertise
+  - Default role is "Programmer" for backward compatibility with existing sessions
+
+### Infrastructure
+
+- **Session Management**
+  - Extended session metadata to include role information
+  - Automatic migration of existing sessions to use default "programmer" role
+  - Updated PromptRefinerService to combine role system prompts with templates
+
+### Documentation
+
+- Updated README.md with new "Roles" section explaining the feature
+- Added role descriptions and usage examples
+- Updated Pro Tips to include role selection best practices
+
+---
+
 ## [1.2.0] - 2026-02-03
 
 ### Fixed

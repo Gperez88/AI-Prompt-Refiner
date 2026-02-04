@@ -4,6 +4,7 @@ import { logger } from '../services/Logger';
 import { ErrorHandler, RateLimiter, InputValidator } from '../utils/ErrorHandler';
 import { SessionManager } from '../services/SessionManager';
 import { ConfigurationManager } from '../services/ConfigurationManager';
+import { RoleId, isValidRoleId } from '../types/Role';
 
 /**
  * Message types for webview communication
@@ -17,7 +18,9 @@ type WebviewMessage =
   | { type: 'searchMessages'; query: string }
   | { type: 'startEditing'; messageId: string }
   | { type: 'cancelEditing' }
-  | { type: 'createSession'; name?: string }
+  | { type: 'createSession'; name?: string; role?: string }
+  | { type: 'requestSessionName' }
+  | { type: 'requestRoleSelection'; name?: string }
   | { type: 'switchSession'; sessionId: string }
   | { type: 'renameSession'; sessionId: string; newName: string }
   | { type: 'deleteSession'; sessionId: string }
@@ -107,7 +110,13 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
 
                     // Session management
                 case 'createSession':
-                    await this._handleCreateSession(data.name);
+                    await this._handleCreateSession(data.name, data.role);
+                    break;
+                case 'requestSessionName':
+                    await this._handleRequestSessionName();
+                    break;
+                case 'requestRoleSelection':
+                    await this._handleRequestRoleSelection(data.name);
                     break;
                 case 'switchSession':
                     await this._handleSwitchSession(data.sessionId);
@@ -371,10 +380,12 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     /**
    * Handle creating a new session
    */
-    private async _handleCreateSession(name?: string) {
-        const session = await this.sessionManager.createSession(name);
+    private async _handleCreateSession(name?: string, role?: string) {
+        // Validate role and cast to RoleId if valid
+        const validatedRole = role && isValidRoleId(role) ? role as RoleId : undefined;
+        const session = await this.sessionManager.createSession(name, validatedRole);
         await this._notifySessionListChanged();
-    
+
         this._view?.webview.postMessage({
             type: 'sessionCreated',
             session
@@ -382,6 +393,46 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
 
         // Load the new session
         await this._loadSession(session.id);
+    }
+
+    /**
+   * Handle requesting session name from user (prompt doesn't work in sandboxed webview)
+   */
+    private async _handleRequestSessionName() {
+        const name = await vscode.window.showInputBox({
+            prompt: 'Session name (optional)',
+            placeHolder: 'Enter a name for the new session',
+            ignoreFocusOut: true
+        });
+        
+        // User cancelled - don't proceed
+        if (name === undefined) {
+            return;
+        }
+        
+        // Now request role selection
+        await this._handleRequestRoleSelection(name || undefined);
+    }
+
+    /**
+   * Handle requesting role selection from user
+   */
+    private async _handleRequestRoleSelection(name?: string) {
+        const roles = [
+            { label: '$(code) Programmer', description: 'Software engineering focus', id: 'programmer' },
+            { label: '$(edit) Writer', description: 'Professional writing focus', id: 'writer' },
+            { label: '$(search) Researcher', description: 'Research and analysis focus', id: 'researcher' },
+            { label: '$(graph) Analyst', description: 'Problem analysis focus', id: 'analyst' }
+        ];
+        
+        const selected = await vscode.window.showQuickPick(roles, {
+            placeHolder: 'Select a role for this session',
+            ignoreFocusOut: true
+        });
+        
+        // User cancelled or selected a role - create session
+        const roleId = selected?.id || 'programmer';
+        await this._handleCreateSession(name, roleId);
     }
 
     /**
@@ -1852,8 +1903,8 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         }
 
         function createNewSession() {
-            const name = prompt('Session name (optional):');
-            vscode.postMessage({ type: 'createSession', name: name || undefined });
+            // Request session name from extension host (prompt doesn't work in sandboxed webview)
+            vscode.postMessage({ type: 'requestSessionName' });
         }
 
         function switchSession(sessionId) {
@@ -2025,19 +2076,6 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         closeFullListBtn.addEventListener('click', closeFullSessionList);
         modalOverlay.addEventListener('click', closeFullSessionList);
 
-        // Panel header buttons
-        if (newSessionBtn) {
-            console.log('[INIT] Attaching listener to newSessionBtn');
-            newSessionBtn.addEventListener('click', (e) => {
-                console.log('[CLICK] newSessionBtn clicked');
-                e.preventDefault();
-                e.stopPropagation();
-                createNewSession();
-            });
-        } else {
-            console.error('[INIT] ERROR: newSessionBtn not found!');
-        }
-
         // Confirmation Modal Functionality
         const confirmModalOverlay = document.getElementById('confirm-modal-overlay');
         const confirmModalTitle = document.getElementById('confirm-modal-title');
@@ -2071,25 +2109,6 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                 hideConfirmModal();
             }
         });
-
-        if (clearAllBtn) {
-            console.log('[INIT] Attaching listener to clearAllBtn');
-            clearAllBtn.addEventListener('click', (e) => {
-                console.log('[CLICK] Clear All Sessions button clicked');
-                e.preventDefault();
-                e.stopPropagation();
-                showConfirmModal(
-                    'Clear All Sessions',
-                    'Are you sure you want to clear all sessions? This action cannot be undone.',
-                    () => {
-                        console.log('[CLICK] Sending clearAllSessions message');
-                        vscode.postMessage({ type: 'clearAllSessions' });
-                    }
-                );
-            });
-        } else {
-            console.error('[INIT] ERROR: clearAllBtn not found!');
-        }
 
         // ==================== MESSAGE HANDLING ====================
 
@@ -2228,6 +2247,46 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         restoreState();
         vscode.postMessage({ type: 'loadInitialState' });
         vscode.postMessage({ type: 'getAllSessions' });
+        
+        // Panel header buttons - initialize after everything is loaded
+        setTimeout(() => {
+            console.log('[INIT-DELAYED] Setting up panel header buttons...');
+            
+            // New Session Button
+            const newSessionBtnHeader = document.getElementById('new-session-btn');
+            if (newSessionBtnHeader) {
+                console.log('[INIT-DELAYED] Attaching listener to new-session-btn');
+                newSessionBtnHeader.addEventListener('click', (e) => {
+                    console.log('[CLICK] new-session-btn clicked');
+                    e.preventDefault();
+                    e.stopPropagation();
+                    createNewSession();
+                });
+            } else {
+                console.error('[INIT-DELAYED] ERROR: new-session-btn not found!');
+            }
+            
+            // Clear All Button
+            const clearAllBtnHeader = document.getElementById('clear-all-btn');
+            if (clearAllBtnHeader) {
+                console.log('[INIT-DELAYED] Attaching listener to clear-all-btn');
+                clearAllBtnHeader.addEventListener('click', (e) => {
+                    console.log('[CLICK] clear-all-btn clicked');
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showConfirmModal(
+                        'Clear All Sessions',
+                        'Are you sure you want to clear all sessions? This action cannot be undone.',
+                        () => {
+                            console.log('[CLICK] Sending clearAllSessions message');
+                            vscode.postMessage({ type: 'clearAllSessions' });
+                        }
+                    );
+                });
+            } else {
+                console.error('[INIT-DELAYED] ERROR: clear-all-btn not found!');
+            }
+        }, 100);
     </script>
 </body>
 </html>`;

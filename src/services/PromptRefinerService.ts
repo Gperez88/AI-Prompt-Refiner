@@ -12,6 +12,8 @@ import { OutputValidator, ValidationResult } from '../utils/OutputValidator';
 import { LRUCache, refinementCache } from '../utils/Cache';
 import { getCircuitBreaker, CircuitBreakerError } from '../utils/CircuitBreaker';
 import { withRetry } from '../utils/Retry';
+import { SessionManager } from './SessionManager';
+import { getRoleById, RoleId, DEFAULT_ROLE_ID } from '../types/Role';
 
 export interface RefinementOptions {
     templateId?: string;
@@ -126,7 +128,18 @@ export class PromptRefinerService implements IPromptRefinerService {
         logger.debug('Loading prompt template', { templateId });
 
         // Load template
-        const systemTemplate = await this.loadTemplate(options?.templateId);
+        const template = await this.loadTemplate(options?.templateId);
+
+        // Get role from active session and combine with template
+        const sessionManager = SessionManager.getInstance();
+        const activeSession = await sessionManager.getActiveSession();
+        const roleId = activeSession?.metadata?.role || DEFAULT_ROLE_ID;
+        const role = getRoleById(roleId);
+        
+        // Combine role system prompt + template
+        const systemTemplate = role ? 
+            `${role.systemPrompt}\n\n${template}` : 
+            template;
 
         // Check cancellation before calling provider
         if (token?.isCancellationRequested) {
@@ -137,6 +150,7 @@ export class PromptRefinerService implements IPromptRefinerService {
             iteration: options?.iteration || 1,
             templateId,
             provider: providerId,
+            role: roleId,
         });
 
         const activeProvider = this.providerManager.getActiveProvider();
