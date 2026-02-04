@@ -6,7 +6,7 @@ export class ConfigurationManager {
     private static instance: ConfigurationManager;
     private context: vscode.ExtensionContext | undefined;
     private secrets: vscode.SecretStorage | undefined;
-    private migrationChecked: boolean = false;
+    private migrationChecked = false;
 
     private constructor() {
         // Private constructor to prevent direct instantiation - use getInstance()

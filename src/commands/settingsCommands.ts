@@ -79,14 +79,14 @@ export async function showProvidersStatus() {
     const configuredProviders = allProviders.filter(p => p.isConfigured);
     const unconfiguredProviders = allProviders.filter(p => !p.isConfigured && p.requiresApiKey);
     
-    let message = `## Providers Configuration Status\n\n`;
+    let message = '## Providers Configuration Status\n\n';
     
     if (configuredProviders.length > 0) {
         message += `✅ **Configured (${configuredProviders.length}):**\n`;
         configuredProviders.forEach(p => {
             message += `  • ${p.name}${p.requiresApiKey ? ' (API Key Set)' : ''}\n`;
         });
-        message += `\n`;
+        message += '\n';
     }
     
     if (unconfiguredProviders.length > 0) {

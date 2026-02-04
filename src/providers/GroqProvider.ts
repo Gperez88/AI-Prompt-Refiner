@@ -64,8 +64,8 @@ export class GroqProvider implements IAIProvider {
                 errorMessage.includes('no longer supported')) {
                 throw new Error(
                     `MODEL_DEPRECATED|The model "${modelId}" has been decommissioned by Groq. ` +
-                    `Please select a different model. ` +
-                    `Check https://console.groq.com/docs/deprecations for current models.`
+                    'Please select a different model. ' +
+                    'Check https://console.groq.com/docs/deprecations for current models.'
                 );
             }
             
@@ -76,7 +76,7 @@ export class GroqProvider implements IAIProvider {
                 errorMessage.includes('does not exist')) {
                 throw new Error(
                     `INVALID_MODEL|The model "${modelId}" is not available on Groq. ` +
-                    `Please check your settings and select a valid model.`
+                    'Please check your settings and select a valid model.'
                 );
             }
             
@@ -86,8 +86,8 @@ export class GroqProvider implements IAIProvider {
                 errorMessage.includes('API key') ||
                 errorMessage.includes('authentication')) {
                 throw new Error(
-                    `AUTH_ERROR|Invalid or expired Groq API key. ` +
-                    `Please check your API key in the settings or generate a new one at https://console.groq.com/keys`
+                    'AUTH_ERROR|Invalid or expired Groq API key. ' +
+                    'Please check your API key in the settings or generate a new one at https://console.groq.com/keys'
                 );
             }
             
@@ -96,9 +96,9 @@ export class GroqProvider implements IAIProvider {
                 errorMessage.includes('rate limit') ||
                 errorMessage.includes('Too Many Requests')) {
                 throw new Error(
-                    `RATE_LIMIT|Groq API rate limit exceeded. ` +
-                    `Please wait a moment and try again. ` +
-                    `Check your usage at https://console.groq.com/usage`
+                    'RATE_LIMIT|Groq API rate limit exceeded. ' +
+                    'Please wait a moment and try again. ' +
+                    'Check your usage at https://console.groq.com/usage'
                 );
             }
             

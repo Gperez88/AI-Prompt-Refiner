@@ -57,10 +57,10 @@ export class GeminiProvider implements IAIProvider {
                 const retryTime = retryMatch ? `${Math.ceil(parseFloat(retryMatch[1]))} seconds` : 'a few minutes';
                 
                 throw new Error(
-                    `QUOTA_EXCEEDED|Google Gemini API quota exceeded. ` +
-                    `You've reached your daily or per-minute request limit. ` +
+                    'QUOTA_EXCEEDED|Google Gemini API quota exceeded. ' +
+                    'You\'ve reached your daily or per-minute request limit. ' +
                     `Please wait ${retryTime} before trying again, ` +
-                    `or consider upgrading your plan at https://ai.google.dev/gemini-api/docs/rate-limits`
+                    'or consider upgrading your plan at https://ai.google.dev/gemini-api/docs/rate-limits'
                 );
             }
             
@@ -71,8 +71,8 @@ export class GeminiProvider implements IAIProvider {
                 errorMessage.includes('invalid') ||
                 errorMessage.includes('not valid')) {
                 throw new Error(
-                    `AUTH_ERROR|Invalid or expired Google Gemini API key. ` +
-                    `Please check your API key in the settings or generate a new one at https://aistudio.google.com/app/apikey`
+                    'AUTH_ERROR|Invalid or expired Google Gemini API key. ' +
+                    'Please check your API key in the settings or generate a new one at https://aistudio.google.com/app/apikey'
                 );
             }
             
@@ -81,8 +81,8 @@ export class GeminiProvider implements IAIProvider {
                 errorMessage.includes('not found') ||
                 errorMessage.includes('does not exist')) {
                 throw new Error(
-                    `MODEL_ERROR|The selected model is not available. ` +
-                    `Please select a different model or try again later.`
+                    'MODEL_ERROR|The selected model is not available. ' +
+                    'Please select a different model or try again later.'
                 );
             }
             
