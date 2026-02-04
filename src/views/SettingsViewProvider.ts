@@ -95,6 +95,10 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
         const ollamaEndpoint = config.getOllamaEndpoint();
         const isStrictMode = config.isStrictMode();
         const hasKey = await config.getApiKey(currentProvider);
+        
+        // Get configuration status for ALL providers
+        const allProvidersStatus = await config.getAllProvidersConfigurationStatus();
+        const configuredCount = await config.getConfiguredProviderCount();
 
         const providers = [
             // { id: 'public', name: t('provider') + ': ' + 'Free (DDG/HF)', description: 'No API key required. Uses free public models. [TEMPORARILY DISABLED]' },
@@ -114,22 +118,21 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
             //     { id: 'hf:mistralai/Mistral-7B-Instruct-v0.3', name: 'Mistral 7B (HF)', description: 'Stable public model' }
             // ],
             'github': [
-                { id: 'gpt-4o', name: 'GPT-4o', description: 'Latest GPT-4 optimized model' },
-                { id: 'gpt-4o-mini', name: 'GPT-4o Mini', description: 'Smaller, faster version' },
-                { id: 'llama-3.1-70b', name: 'LLaMA 3.1 70B', description: 'Meta\'s open-source model' },
-                { id: 'mistral-large', name: 'Mistral Large', description: 'Powerful European model' }
+                { id: 'github-gpt-4o', name: 'GPT-4o', description: 'Latest GPT-4 optimized model' },
+                { id: 'github-gpt-4o-mini', name: 'GPT-4o Mini', description: 'Smaller, faster version' }
+                // NOTE: LLaMA and Mistral models removed temporarily due to API name issues
+                // Will be re-added once exact model names are confirmed
             ],
             'openai': [
                 { id: 'gpt-4o', name: 'GPT-4o', description: 'Most capable model' },
                 { id: 'gpt-4o-mini', name: 'GPT-4o Mini', description: 'Fast and affordable' }
             ],
             'gemini': [
-                { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash', description: 'Fast and efficient' },
-                { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', description: 'Most capable Gemini model' }
+                { id: 'gemini-flash', name: 'Gemini 2.0 Flash', description: 'Fast and efficient' },
+                { id: 'gemini-pro', name: 'Gemini 2.0 Pro', description: 'Most capable Gemini model' }
             ],
             'groq': [
-                { id: 'llama3-70b-8192', name: 'LLaMA 3 70B', description: 'Ultra-fast inference' },
-                { id: 'mixtral-8x7b-32768', name: 'Mixtral 8x7B', description: 'Mixture of experts model' }
+                { id: 'groq-llama3-70b', name: 'Llama 3.3 70B', description: 'Ultra-fast inference (replaces deprecated llama3-70b-8192)' }
             ],
             'ollama': [
                 { id: 'custom', name: 'Active Ollama Model', description: 'Uses whatever model is currently loaded in Ollama' }
@@ -294,6 +297,26 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
                             <span>${t('strictMode')}</span>
                         </label>
                         <div class="hint">${t('strictModeHint')}</div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Providers Status (${configuredCount} configured)</div>
+                    <div class="hint">Multiple providers can be configured simultaneously. Switch between them without conflicts.</div>
+                    <div class="providers-list" style="margin-top: 12px;">
+                        ${allProvidersStatus.map(p => `
+                            <div class="provider-status-item" style="display: flex; align-items: center; justify-content: space-between; padding: 8px; margin: 4px 0; background: ${p.isConfigured ? 'var(--vscode-button-background)' : 'var(--vscode-input-background)'}; border-radius: 4px; opacity: ${p.isConfigured ? '1' : '0.7'};">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-size: 16px;">${p.isConfigured ? '✅' : '⚠️'}</span>
+                                    <span style="font-weight: ${p.id === currentProvider ? 'bold' : 'normal'}; color: ${p.id === currentProvider ? 'var(--vscode-button-foreground)' : 'inherit'};">
+                                        ${p.name} ${p.id === currentProvider ? '(Active)' : ''}
+                                    </span>
+                                </div>
+                                <span style="font-size: 12px; color: ${p.isConfigured ? 'var(--vscode-button-foreground)' : 'var(--vscode-descriptionForeground)'};">
+                                    ${p.requiresApiKey ? (p.hasApiKey ? 'API Key Set' : 'API Key Required') : 'No API Key Needed'}
+                                </span>
+                            </div>
+                        `).join('')}
                     </div>
                 </div>
 

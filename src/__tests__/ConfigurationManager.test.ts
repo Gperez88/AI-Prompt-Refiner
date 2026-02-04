@@ -81,10 +81,10 @@ describe('ConfigurationManager', () => {
 
   describe('setModelId', () => {
     it('should update model configuration', async () => {
-      await configManager.setModelId('gemini-1.5-pro');
+      await configManager.setModelId('gemini-pro');
       expect(mockConfig.update).toHaveBeenCalledWith(
         'model',
-        'gemini-1.5-pro',
+        'gemini-pro',
         vscode.ConfigurationTarget.Global
       );
     });

@@ -1,0 +1,102 @@
+{
+  "github": {
+    "lastUpdated": "2026-02-03T12:00:00.000Z",
+    "models": [
+      {
+        "id": "gpt-4o",
+        "name": "GPT-4o",
+        "description": "Latest GPT-4 optimized model",
+        "isVerified": true,
+        "lastTested": 1738569600000
+      },
+      {
+        "id": "gpt-4o-mini",
+        "name": "GPT-4o Mini",
+        "description": "Smaller, faster version",
+        "isVerified": true,
+        "lastTested": 1738569600000
+      },
+      {
+        "id": "Meta-Llama-3.1-70B-Instruct",
+        "name": "LLaMA 3.1 70B",
+        "description": "Meta's open-source model",
+        "isVerified": true,
+        "lastTested": 1738569600000
+      },
+      {
+        "id": "mistralai/Mistral-large",
+        "name": "Mistral Large",
+        "description": "Powerful European model",
+        "isVerified": true,
+        "lastTested": 1738569600000
+      }
+    ],
+    "endpoint": "https://models.inference.ai.azure.com/chat/completions"
+  },
+  "openai": {
+    "lastUpdated": "2026-02-03T12:00:00.000Z",
+    "models": [
+      {
+        "id": "gpt-4o",
+        "name": "GPT-4o",
+        "description": "Most capable model",
+        "isVerified": true,
+        "lastTested": 1738569600000
+      },
+      {
+        "id": "gpt-4o-mini",
+        "name": "GPT-4o Mini",
+        "description": "Fast and affordable",
+        "isVerified": true,
+        "lastTested": 1738569600000
+      }
+    ],
+    "endpoint": "https://api.openai.com/v1/chat/completions"
+  },
+  "gemini": {
+    "lastUpdated": "2026-02-03T12:00:00.000Z",
+    "models": [
+      {
+        "id": "gemini-1.5-flash",
+        "name": "Gemini 1.5 Flash",
+        "description": "Fast and efficient",
+        "isVerified": true,
+        "lastTested": 1738569600000
+      },
+      {
+        "id": "gemini-1.5-pro",
+        "name": "Gemini 1.5 Pro",
+        "description": "Most capable Gemini model",
+        "isVerified": true,
+        "lastTested": 1738569600000
+      }
+    ],
+    "endpoint": "https://generativelanguage.googleapis.com/v1beta/models"
+  },
+  "groq": {
+    "lastUpdated": "2026-02-03T12:00:00.000Z",
+    "models": [
+      {
+        "id": "groq-llama3-70b",
+        "apiId": "llama-3.3-70b-versatile",
+        "name": "Llama 3.3 70B",
+        "description": "Ultra-fast inference (replaces deprecated llama3-70b-8192)",
+        "isVerified": true,
+        "lastTested": 1738612800000
+      }
+    ],
+    "deprecated": [
+      {
+        "id": "llama3-70b-8192",
+        "reason": "Decommissioned by Groq",
+        "replacedBy": "llama-3.3-70b-versatile"
+      },
+      {
+        "id": "mixtral-8x7b-32768",
+        "reason": "Decommissioned by Groq",
+        "replacedBy": null
+      }
+    ],
+    "endpoint": "https://api.groq.com/openai/v1/chat/completions"
+  }
+}

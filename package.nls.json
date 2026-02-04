@@ -11,5 +11,9 @@
   "command.manageTemplates.title": "Manage Templates",
   "command.validateOutput.title": "Validate Output",
   "command.exportHistory.title": "Export Chat History",
-  "command.saveAsSnippet.title": "Save as Snippet"
+  "command.saveAsSnippet.title": "Save as Snippet",
+  "command.refreshModels.title": "Refresh Supported Models",
+  "command.showProvidersStatus.title": "Show Providers Configuration Status",
+  "command.clearApiKey.title": "Clear Provider API Key",
+  "command.switchProvider.title": "Switch Between Configured Providers"
 }
