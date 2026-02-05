@@ -27,7 +27,9 @@ export class Analytics {
     private context?: vscode.ExtensionContext;
     private readonly STORAGE_KEY = 'promptRefiner.analytics.v1';
 
-    private constructor() {}
+    private constructor() {
+        // Private constructor for singleton pattern
+    }
 
     public static getInstance(): Analytics {
         if (!Analytics.instance) {
