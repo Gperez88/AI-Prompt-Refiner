@@ -122,6 +122,16 @@ describe('PromptRefinerService with DI', () => {
     });
 
     it('should use strict template when strict mode is enabled', async () => {
+      // Disable role templates for this test
+      (ConfigurationManager.getInstance as any).mockReturnValue({
+        initialize: vi.fn(),
+        isStrictMode: vi.fn().mockReturnValue(true),
+        getProviderId: vi.fn().mockReturnValue('mock'),
+        getModelId: vi.fn().mockReturnValue('gpt-4o-mini'),
+        getOllamaEndpoint: vi.fn().mockReturnValue('http://localhost:11434'),
+        getUseRoleTemplates: vi.fn().mockReturnValue(false),
+      });
+
       // Mock strict mode by checking template file path
       vi.mocked(fs.readFileSync).mockImplementation((path: any) => {
         if (path.includes('strict')) {
@@ -132,7 +142,7 @@ describe('PromptRefinerService with DI', () => {
 
       await service.refine('user prompt');
 
-      // Should try to read strict template first
+      // Should try to read strict template
       expect(fs.readFileSync).toHaveBeenCalledWith(
         expect.stringContaining('strict'),
         'utf-8'
@@ -164,6 +174,16 @@ describe('PromptRefinerService with DI', () => {
     });
 
     it('should fallback to src path if dist path fails', async () => {
+      // Disable role templates for this test to simplify
+      (ConfigurationManager.getInstance as any).mockReturnValue({
+        initialize: vi.fn(),
+        isStrictMode: vi.fn().mockReturnValue(true),
+        getProviderId: vi.fn().mockReturnValue('mock'),
+        getModelId: vi.fn().mockReturnValue('gpt-4o-mini'),
+        getOllamaEndpoint: vi.fn().mockReturnValue('http://localhost:11434'),
+        getUseRoleTemplates: vi.fn().mockReturnValue(false), // Disable role templates
+      });
+
       let callCount = 0;
       vi.mocked(fs.readFileSync).mockImplementation((path: any) => {
         callCount++;
