@@ -4,7 +4,8 @@ import { logger } from '../services/Logger';
 import { ErrorHandler, RateLimiter, InputValidator } from '../utils/ErrorHandler';
 import { SessionManager } from '../services/SessionManager';
 import { ConfigurationManager } from '../services/ConfigurationManager';
-import { RoleId, isValidRoleId } from '../types/Role';
+import { RoleId, isValidRoleId, getRoleById, PREDEFINED_ROLES } from '../types/Role';
+import { Analytics } from '../services/Analytics';
 
 /**
  * Message types for webview communication
@@ -384,6 +385,12 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         // Validate role and cast to RoleId if valid
         const validatedRole = role && isValidRoleId(role) ? role as RoleId : undefined;
         const session = await this.sessionManager.createSession(name, validatedRole);
+        
+        // Track analytics
+        const roleId = validatedRole || 'programmer';
+        const roleInfo = getRoleById(roleId);
+        Analytics.getInstance().trackSessionCreated(roleId, roleInfo?.name || 'Programmer');
+        
         await this._notifySessionListChanged();
 
         this._view?.webview.postMessage({
@@ -419,10 +426,10 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
    */
     private async _handleRequestRoleSelection(name?: string) {
         const roles = [
-            { label: '$(code) Programmer', description: 'Software engineering focus', id: 'programmer' },
-            { label: '$(edit) Writer', description: 'Professional writing focus', id: 'writer' },
-            { label: '$(search) Researcher', description: 'Research and analysis focus', id: 'researcher' },
-            { label: '$(graph) Analyst', description: 'Problem analysis focus', id: 'analyst' }
+            { label: '💻 Programmer', description: 'Software engineering focus', id: 'programmer' },
+            { label: '✍️ Writer', description: 'Professional writing focus', id: 'writer' },
+            { label: '🔬 Researcher', description: 'Research and analysis focus', id: 'researcher' },
+            { label: '📊 Analyst', description: 'Problem analysis focus', id: 'analyst' }
         ];
         
         const selected = await vscode.window.showQuickPick(roles, {
@@ -641,20 +648,44 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
    */
     private async _loadInitialState() {
         const activeSession = await this.sessionManager.getActiveSession();
+        const config = ConfigurationManager.getInstance();
+        
+        // Get current template info
+        const isStrictMode = config.isStrictMode();
+        const templateName = isStrictMode ? 'Strict' : 'Normal';
     
         if (activeSession) {
-            // Send session info
+            // Get role info for active session
+            const roleId = activeSession.metadata?.role || 'programmer';
+            const role = getRoleById(roleId);
+            
+            // Send session info with role
             this._view?.webview.postMessage({
                 type: 'initialState',
-                session: activeSession,
-                hasSessions: true
+                session: {
+                    ...activeSession,
+                    roleInfo: role ? {
+                        id: role.id,
+                        name: role.name,
+                        icon: role.icon
+                    } : null
+                },
+                hasSessions: true,
+                templateInfo: {
+                    name: templateName,
+                    isStrict: isStrictMode
+                }
             });
         } else {
             // No sessions yet
             this._view?.webview.postMessage({
                 type: 'initialState',
                 session: null,
-                hasSessions: false
+                hasSessions: false,
+                templateInfo: {
+                    name: templateName,
+                    isStrict: isStrictMode
+                }
             });
         }
 
@@ -686,10 +717,24 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     private async _notifySessionListChanged() {
         const sessions = await this.sessionManager.getAllSessions({ includeArchived: true });
         const activeSession = await this.sessionManager.getActiveSession();
+        
+        // Enrich sessions with role information
+        const sessionsWithRoles = sessions.map(session => {
+            const roleId = session.metadata?.role || 'programmer';
+            const role = getRoleById(roleId);
+            return {
+                ...session,
+                roleInfo: role ? {
+                    id: role.id,
+                    name: role.name,
+                    icon: role.icon
+                } : null
+            };
+        });
     
         this._view?.webview.postMessage({
             type: 'sessionListChanged',
-            sessions,
+            sessions: sessionsWithRoles,
             activeSessionId: activeSession?.id || null
         });
     }
@@ -734,12 +779,33 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             background-color: var(--vscode-sideBar-background);
         }
 
+        .panel-title-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
         .panel-title {
             font-size: 11px;
             font-weight: 600;
             color: var(--vscode-foreground);
             text-transform: uppercase;
             letter-spacing: 0.5px;
+        }
+
+        .template-indicator {
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            background: var(--vscode-badge-background);
+            color: var(--vscode-badge-foreground);
+            font-weight: 500;
+            cursor: default;
+        }
+
+        .template-indicator.strict {
+            background: var(--vscode-errorBackground);
+            color: var(--vscode-errorForeground);
         }
 
         .panel-actions {
@@ -930,6 +996,17 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             font-weight: 500;
             font-size: 13px;
             color: var(--vscode-foreground);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .role-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            opacity: 0.8;
         }
 
         .session-status {
@@ -1063,6 +1140,17 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             font-weight: 500;
             font-size: 13px;
             margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .role-badge-full {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            opacity: 0.8;
         }
 
         .session-meta-full {
@@ -1590,7 +1678,10 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
 <body>
     <!-- Panel Header -->
     <div class="panel-header">
-        <span class="panel-title">AI PROMPT REFINER</span>
+        <div class="panel-title-wrapper">
+            <span class="panel-title">AI PROMPT REFINER</span>
+            <span id="template-indicator" class="template-indicator" title="Current refinement mode"></span>
+        </div>
         <div class="panel-actions">
             <!-- New Session Button -->
             <button id="new-session-btn" class="action-icon-btn" title="New Session">
@@ -1737,6 +1828,19 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             }
         }
 
+        // Update template indicator in header
+        function updateTemplateIndicator(templateInfo) {
+            const indicator = document.getElementById('template-indicator');
+            if (indicator && templateInfo) {
+                indicator.textContent = templateInfo.name || 'Normal';
+                if (templateInfo.isStrict) {
+                    indicator.classList.add('strict');
+                } else {
+                    indicator.classList.remove('strict');
+                }
+            }
+        }
+
         // Auto-save state periodically and on events
         setInterval(saveState, 5000);
         window.addEventListener('beforeunload', saveState);
@@ -1767,12 +1871,16 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                     const lastUpdate = getTimeAgo(session.updatedAt);
                     const provider = session.metadata?.provider || 'Local';
                     const isCompleted = messageCount > 0 && session.messages[session.messages.length - 1]?.role === 'assistant';
+                    const roleIcon = session.roleInfo?.icon || '💻';
 
                     return \`
                         <div class="session-item \${session.id === currentSessionId ? 'active' : ''}" 
                              data-id="\${session.id}">
                             <div class="session-item-info">
-                                <div class="session-name">\${escapeHtml(session.name)}</div>
+                                <div class="session-name">
+                                    <span class="role-badge" title="\${session.roleInfo?.name || 'Programmer'}">\${roleIcon}</span>
+                                    \${escapeHtml(session.name)}
+                                </div>
                                 <div class="session-status">\${isCompleted ? 'Completed' : 'In Progress'}</div>
                             </div>
                             <div class="session-meta">\${provider} • \${lastUpdate}</div>
@@ -1869,12 +1977,14 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             const isArchived = session.metadata?.isArchived;
             const messageCount = session.metadata?.messageCount || 0;
             const lastUpdate = new Date(session.updatedAt).toLocaleDateString();
+            const roleIcon = session.roleInfo?.icon || '💻';
 
             return \`
                 <div class="session-item-full \${session.id === currentSessionId ? 'active' : ''}" 
                      data-id="\${session.id}">
                     <div class="session-info">
                         <div class="session-name-full">
+                            <span class="role-badge-full" title="\${session.roleInfo?.name || 'Programmer'}">\${roleIcon}</span>
                             \${escapeHtml(session.name)}
                             \${isArchived ? '<span style="font-size: 10px; opacity: 0.6; margin-left: 8px;">(Archived)</span>' : ''}
                         </div>
@@ -2123,6 +2233,11 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                         renderMessages(data.session.messages || []);
                     }
                     restoreState();
+                    
+                    // Update template indicator
+                    if (data.templateInfo) {
+                        updateTemplateIndicator(data.templateInfo);
+                    }
                     break;
 
                 // Session list updates

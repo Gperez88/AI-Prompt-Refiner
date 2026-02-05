@@ -115,6 +115,14 @@ export class ConfigurationManager {
         return vscode.workspace.getConfiguration('promptRefiner').get<boolean>('strictMode', true);
     }
 
+    /**
+     * Check if role-specific templates should be used
+     * Default is true to enable role-specific templates
+     */
+    public getUseRoleTemplates(): boolean {
+        return vscode.workspace.getConfiguration('promptRefiner').get<boolean>('useRoleTemplates', true);
+    }
+
     public async getApiKey(providerId: string): Promise<string | undefined> {
         if (!this.secrets) {
             return undefined;

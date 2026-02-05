@@ -103,6 +103,16 @@
         "command": "promptRefiner.switchProvider",
         "title": "Switch Between Configured Providers",
         "category": "Prompt Refiner"
+      },
+      {
+        "command": "promptRefiner.showAnalytics",
+        "title": "Show Role Usage Analytics",
+        "category": "Prompt Refiner"
+      },
+      {
+        "command": "promptRefiner.resetAnalytics",
+        "title": "Reset Analytics Data",
+        "category": "Prompt Refiner"
       }
     ],
     "keybindings": [
@@ -180,6 +190,11 @@
           "type": "boolean",
           "default": true,
           "description": "If true, enforces strict output format without conversational filler."
+        },
+        "promptRefiner.useRoleTemplates": {
+          "type": "boolean",
+          "default": true,
+          "description": "Use role-specific prompt templates when available. Each role (Programmer, Writer, Researcher, Analyst) has its own optimized template."
         }
       }
     }

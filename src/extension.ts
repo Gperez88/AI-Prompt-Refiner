@@ -8,6 +8,7 @@ import { ChatViewProvider } from './views/ChatViewProvider';
 import { SettingsViewProvider } from './views/SettingsViewProvider';
 import { logger, LogLevel } from './services/Logger';
 import { ErrorHandler, ErrorType } from './utils/ErrorHandler';
+import { Analytics } from './services/Analytics';
 
 let statusBarItem: vscode.StatusBarItem;
 
@@ -16,6 +17,10 @@ export function activate(context: vscode.ExtensionContext) {
     logger.initialize(context);
     logger.info('AI Prompt Refiner extension activating...');
 
+    // Initialize Analytics
+    const analytics = Analytics.getInstance();
+    analytics.initialize(context);
+ 
     // Initialize Service
     const service = PromptRefinerService.getInstance();
     service.initialize(context);
@@ -207,6 +212,15 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('promptRefiner.switchProvider', async () => {
         await switchProviderCommand();
         updateStatusBarItem(); // Update status bar to show new provider
+    }));
+
+    // Register Analytics Commands
+    context.subscriptions.push(vscode.commands.registerCommand('promptRefiner.showAnalytics', async () => {
+        analytics.showReport();
+    }));
+
+    context.subscriptions.push(vscode.commands.registerCommand('promptRefiner.resetAnalytics', async () => {
+        await analytics.resetData();
     }));
 
     // Register Refresh Models Command

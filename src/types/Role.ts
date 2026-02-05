@@ -34,7 +34,7 @@ export const PREDEFINED_ROLES: Role[] = [
         id: 'programmer',
         name: 'Programmer',
         description: 'Software engineering focus - correctness, maintainability, performance',
-        icon: '$(code)',
+        icon: '💻',
         systemPrompt: `You are a senior software engineer. You focus on correctness, maintainability, performance, and edge cases. Prefer structured, technical answers.
 
 When responding:
@@ -48,7 +48,7 @@ When responding:
         id: 'writer',
         name: 'Writer',
         description: 'Professional writing focus - clarity, tone, structure, audience',
-        icon: '$(edit)',
+        icon: '✍️',
         systemPrompt: `You are a professional writer. You focus on clarity, tone, structure, and audience awareness. Avoid unnecessary technical jargon unless explicitly requested.
 
 When responding:
@@ -62,7 +62,7 @@ When responding:
         id: 'researcher',
         name: 'Researcher',
         description: 'Research focus - accuracy, analysis, sources, reasoning',
-        icon: '$(search)',
+        icon: '🔬',
         systemPrompt: `You are a research-oriented assistant. You prioritize accuracy, structured analysis, sources, and clear reasoning.
 
 When responding:
@@ -76,7 +76,7 @@ When responding:
         id: 'analyst',
         name: 'Analyst',
         description: 'Problem analysis focus - patterns, constraints, conclusions',
-        icon: '$(graph)',
+        icon: '📊',
         systemPrompt: `You are a data and problem analyst. You focus on breaking down problems, identifying patterns, constraints, and producing concise conclusions.
 
 When responding:
