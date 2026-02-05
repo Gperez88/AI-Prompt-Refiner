@@ -1,0 +1,974 @@
+﻿2026-02-05T16:57:42.3282498Z Current runner version: '2.331.0'
+2026-02-05T16:57:42.3305560Z ##[group]Runner Image Provisioner
+2026-02-05T16:57:42.3306460Z Hosted Compute Agent
+2026-02-05T16:57:42.3307075Z Version: 20260123.484
+2026-02-05T16:57:42.3307689Z Commit: 6bd6555ca37d84114959e1c76d2c01448ff61c5d
+2026-02-05T16:57:42.3308335Z Build Date: 2026-01-23T19:41:17Z
+2026-02-05T16:57:42.3309034Z Worker ID: {a178ace1-06f5-4205-bc3a-9681d19c7629}
+2026-02-05T16:57:42.3309880Z Azure Region: westus3
+2026-02-05T16:57:42.3310468Z ##[endgroup]
+2026-02-05T16:57:42.3311974Z ##[group]Operating System
+2026-02-05T16:57:42.3312555Z Ubuntu
+2026-02-05T16:57:42.3313024Z 24.04.3
+2026-02-05T16:57:42.3313418Z LTS
+2026-02-05T16:57:42.3313976Z ##[endgroup]
+2026-02-05T16:57:42.3314433Z ##[group]Runner Image
+2026-02-05T16:57:42.3315260Z Image: ubuntu-24.04
+2026-02-05T16:57:42.3315819Z Version: 20260126.10.1
+2026-02-05T16:57:42.3316977Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260126.10/images/ubuntu/Ubuntu2404-Readme.md
+2026-02-05T16:57:42.3318494Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260126.10
+2026-02-05T16:57:42.3319377Z ##[endgroup]
+2026-02-05T16:57:42.3320448Z ##[group]GITHUB_TOKEN Permissions
+2026-02-05T16:57:42.3322483Z Contents: read
+2026-02-05T16:57:42.3322991Z Metadata: read
+2026-02-05T16:57:42.3323582Z Packages: read
+2026-02-05T16:57:42.3324041Z ##[endgroup]
+2026-02-05T16:57:42.3326494Z Secret source: Actions
+2026-02-05T16:57:42.3327210Z Prepare workflow directory
+2026-02-05T16:57:42.3651019Z Prepare all required actions
+2026-02-05T16:57:42.3690149Z Getting action download info
+2026-02-05T16:57:42.8464836Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+2026-02-05T16:57:42.9328364Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+2026-02-05T16:57:43.0512476Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-02-05T16:57:43.2680759Z Complete job name: pre-release
+2026-02-05T16:57:43.3373614Z ##[group]Run actions/checkout@v4
+2026-02-05T16:57:43.3374436Z with:
+2026-02-05T16:57:43.3375042Z   repository: Gperez88/AI-Prompt-Refiner
+2026-02-05T16:57:43.3375723Z   token: ***
+2026-02-05T16:57:43.3376108Z   ssh-strict: true
+2026-02-05T16:57:43.3376485Z   ssh-user: git
+2026-02-05T16:57:43.3376878Z   persist-credentials: true
+2026-02-05T16:57:43.3377307Z   clean: true
+2026-02-05T16:57:43.3377702Z   sparse-checkout-cone-mode: true
+2026-02-05T16:57:43.3378168Z   fetch-depth: 1
+2026-02-05T16:57:43.3378545Z   fetch-tags: false
+2026-02-05T16:57:43.3378935Z   show-progress: true
+2026-02-05T16:57:43.3379324Z   lfs: false
+2026-02-05T16:57:43.3379690Z   submodules: false
+2026-02-05T16:57:43.3380079Z   set-safe-directory: true
+2026-02-05T16:57:43.3380755Z ##[endgroup]
+2026-02-05T16:57:43.4462340Z Syncing repository: Gperez88/AI-Prompt-Refiner
+2026-02-05T16:57:43.4464051Z ##[group]Getting Git version info
+2026-02-05T16:57:43.4465194Z Working directory is '/home/runner/work/AI-Prompt-Refiner/AI-Prompt-Refiner'
+2026-02-05T16:57:43.4466284Z [command]/usr/bin/git version
+2026-02-05T16:57:43.4536768Z git version 2.52.0
+2026-02-05T16:57:43.4562526Z ##[endgroup]
+2026-02-05T16:57:43.4575836Z Temporarily overriding HOME='/home/runner/work/_temp/b8950544-5634-4eaf-9d9d-e9bc74a12f20' before making global git config changes
+2026-02-05T16:57:43.4577187Z Adding repository directory to the temporary git global config as a safe directory
+2026-02-05T16:57:43.4588015Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/AI-Prompt-Refiner/AI-Prompt-Refiner
+2026-02-05T16:57:43.4624984Z Deleting the contents of '/home/runner/work/AI-Prompt-Refiner/AI-Prompt-Refiner'
+2026-02-05T16:57:43.4628450Z ##[group]Initializing the repository
+2026-02-05T16:57:43.4632259Z [command]/usr/bin/git init /home/runner/work/AI-Prompt-Refiner/AI-Prompt-Refiner
+2026-02-05T16:57:43.4730675Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-02-05T16:57:43.4732158Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-02-05T16:57:43.4733114Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-02-05T16:57:43.4734278Z hint: call:
+2026-02-05T16:57:43.4735125Z hint:
+2026-02-05T16:57:43.4735913Z hint: 	git config --global init.defaultBranch <name>
+2026-02-05T16:57:43.4736911Z hint:
+2026-02-05T16:57:43.4737940Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-02-05T16:57:43.4739674Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-02-05T16:57:43.4741056Z hint:
+2026-02-05T16:57:43.4741779Z hint: 	git branch -m <name>
+2026-02-05T16:57:43.4742602Z hint:
+2026-02-05T16:57:43.4743740Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-02-05T16:57:43.4746022Z Initialized empty Git repository in /home/runner/work/AI-Prompt-Refiner/AI-Prompt-Refiner/.git/
+2026-02-05T16:57:43.4749245Z [command]/usr/bin/git remote add origin https://github.com/Gperez88/AI-Prompt-Refiner
+2026-02-05T16:57:43.4783496Z ##[endgroup]
+2026-02-05T16:57:43.4784889Z ##[group]Disabling automatic garbage collection
+2026-02-05T16:57:43.4788841Z [command]/usr/bin/git config --local gc.auto 0
+2026-02-05T16:57:43.4816838Z ##[endgroup]
+2026-02-05T16:57:43.4818011Z ##[group]Setting up auth
+2026-02-05T16:57:43.4824321Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-02-05T16:57:43.4854718Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-02-05T16:57:43.5179980Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-02-05T16:57:43.5210130Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-02-05T16:57:43.5425492Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-02-05T16:57:43.5455629Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-02-05T16:57:43.5681486Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-02-05T16:57:43.5714061Z ##[endgroup]
+2026-02-05T16:57:43.5715463Z ##[group]Fetching the repository
+2026-02-05T16:57:43.5723852Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +6fcfe86819a6692a9a7d1e6f431e089d50fcf86f:refs/remotes/origin/develop
+2026-02-05T16:57:44.1188451Z From https://github.com/Gperez88/AI-Prompt-Refiner
+2026-02-05T16:57:44.1190156Z  * [new ref]         6fcfe86819a6692a9a7d1e6f431e089d50fcf86f -> origin/develop
+2026-02-05T16:57:44.1221441Z ##[endgroup]
+2026-02-05T16:57:44.1222735Z ##[group]Determining the checkout info
+2026-02-05T16:57:44.1224309Z ##[endgroup]
+2026-02-05T16:57:44.1229773Z [command]/usr/bin/git sparse-checkout disable
+2026-02-05T16:57:44.1272194Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-02-05T16:57:44.1299096Z ##[group]Checking out the ref
+2026-02-05T16:57:44.1303553Z [command]/usr/bin/git checkout --progress --force -B develop refs/remotes/origin/develop
+2026-02-05T16:57:44.1422416Z Switched to a new branch 'develop'
+2026-02-05T16:57:44.1424517Z branch 'develop' set up to track 'origin/develop'.
+2026-02-05T16:57:44.1432340Z ##[endgroup]
+2026-02-05T16:57:44.1465292Z [command]/usr/bin/git log -1 --format=%H
+2026-02-05T16:57:44.1487532Z 6fcfe86819a6692a9a7d1e6f431e089d50fcf86f
+2026-02-05T16:57:44.1793158Z ##[group]Run actions/setup-node@v4
+2026-02-05T16:57:44.1794189Z with:
+2026-02-05T16:57:44.1795117Z   node-version: 20.x
+2026-02-05T16:57:44.1795899Z   cache: npm
+2026-02-05T16:57:44.1796609Z   always-auth: false
+2026-02-05T16:57:44.1797449Z   check-latest: false
+2026-02-05T16:57:44.1798750Z   token: ***
+2026-02-05T16:57:44.1799457Z ##[endgroup]
+2026-02-05T16:57:44.3547206Z Found in cache @ /opt/hostedtoolcache/node/20.20.0/x64
+2026-02-05T16:57:44.3555692Z ##[group]Environment details
+2026-02-05T16:57:46.3308131Z node: v20.20.0
+2026-02-05T16:57:46.3308627Z npm: 10.8.2
+2026-02-05T16:57:46.3308868Z yarn: 1.22.22
+2026-02-05T16:57:46.3310090Z ##[endgroup]
+2026-02-05T16:57:46.3330384Z [command]/opt/hostedtoolcache/node/20.20.0/x64/bin/npm config get cache
+2026-02-05T16:57:46.5816343Z /home/runner/.npm
+2026-02-05T16:57:46.8283773Z npm cache is not found
+2026-02-05T16:57:46.8405192Z ##[group]Run npm ci
+2026-02-05T16:57:46.8405485Z [36;1mnpm ci[0m
+2026-02-05T16:57:46.8447648Z shell: /usr/bin/bash -e {0}
+2026-02-05T16:57:46.8447911Z ##[endgroup]
+2026-02-05T16:57:49.3135845Z npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+2026-02-05T16:57:49.5062170Z npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+2026-02-05T16:57:49.6513212Z npm warn deprecated glob@8.1.0: Glob versions prior to v9 are no longer supported
+2026-02-05T16:57:49.7980373Z npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+2026-02-05T16:57:50.0830911Z npm warn deprecated @humanwhocodes/object-schema@2.0.3: Use @eslint/object-schema instead
+2026-02-05T16:57:50.0907086Z npm warn deprecated @humanwhocodes/config-array@0.13.0: Use @eslint/config-array instead
+2026-02-05T16:57:50.1213719Z npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+2026-02-05T16:57:50.7568794Z npm warn deprecated eslint@8.57.1: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+2026-02-05T16:57:51.1293349Z 
+2026-02-05T16:57:51.1294232Z added 299 packages, and audited 300 packages in 4s
+2026-02-05T16:57:51.1295000Z 
+2026-02-05T16:57:51.1295278Z 80 packages are looking for funding
+2026-02-05T16:57:51.1295701Z   run `npm fund` for details
+2026-02-05T16:57:51.1360964Z 
+2026-02-05T16:57:51.1361297Z found 0 vulnerabilities
+2026-02-05T16:57:51.1521825Z ##[group]Run npm test
+2026-02-05T16:57:51.1522074Z [36;1mnpm test[0m
+2026-02-05T16:57:51.1554479Z shell: /usr/bin/bash -e {0}
+2026-02-05T16:57:51.1554933Z ##[endgroup]
+2026-02-05T16:57:51.2645141Z 
+2026-02-05T16:57:51.2645559Z > ai-prompt-refiner@1.3.0 test
+2026-02-05T16:57:51.2646039Z > vitest run
+2026-02-05T16:57:51.2646238Z 
+2026-02-05T16:57:51.5882286Z 
+2026-02-05T16:57:51.5884786Z [1m[46m RUN [49m[22m [36mv4.0.18 [39m[90m/home/runner/work/AI-Prompt-Refiner/AI-Prompt-Refiner[39m
+2026-02-05T16:57:51.5885604Z 
+2026-02-05T16:57:52.0015749Z [90mstdout[2m | src/__tests__/ConfigurationManager.test.ts[2m > [22m[2mConfigurationManager[2m > [22m[2mgetModelId[2m > [22m[2mshould return default model when not configured
+2026-02-05T16:57:52.0018089Z [22m[39m[2026-02-05T16:57:51.997Z] [INFO] Migrating legacy model ID: gpt-4o-mini -> github-gpt-4o-mini
+2026-02-05T16:57:52.0018791Z 
+2026-02-05T16:57:52.0020543Z [90mstdout[2m | src/__tests__/ConfigurationManager.test.ts[2m > [22m[2mConfigurationManager[2m > [22m[2mgetModelId[2m > [22m[2mshould return default model when not configured
+2026-02-05T16:57:52.0022634Z [22m[39m[2026-02-05T16:57:52.000Z] [INFO] Model set to: github-gpt-4o-mini (API: gpt-4o-mini)
+2026-02-05T16:57:52.0023286Z 
+2026-02-05T16:57:52.0042751Z [90mstdout[2m | src/__tests__/ConfigurationManager.test.ts[2m > [22m[2mConfigurationManager[2m > [22m[2msetModelId[2m > [22m[2mshould update model configuration
+2026-02-05T16:57:52.0052048Z [22m[39m[2026-02-05T16:57:52.003Z] [INFO] Model set to: gemini-pro (API: gemini-pro)
+2026-02-05T16:57:52.0053053Z 
+2026-02-05T16:57:52.0179214Z  [32m✓[39m src/__tests__/ConfigurationManager.test.ts [2m([22m[2m15 tests[22m[2m)[22m[32m 19[2mms[22m[39m
+2026-02-05T16:57:52.0182601Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mInitialization[2m > [22m[2mshould load existing storage when available
+2026-02-05T16:57:52.0184519Z [22m[39m[2026-02-05T16:57:52.012Z] [INFO] SessionManager initialized {
+2026-02-05T16:57:52.0185550Z   "sessionCount": 1,
+2026-02-05T16:57:52.0186010Z   "activeSession": "session-1"
+2026-02-05T16:57:52.0186493Z }
+2026-02-05T16:57:52.0186664Z 
+2026-02-05T16:57:52.0188290Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mInitialization[2m > [22m[2mshould load existing storage when available
+2026-02-05T16:57:52.0190099Z [22m[39m[2026-02-05T16:57:52.014Z] [INFO] Migrated session roles to default {
+2026-02-05T16:57:52.0190739Z   "count": 1
+2026-02-05T16:57:52.0191015Z }
+2026-02-05T16:57:52.0191157Z 
+2026-02-05T16:57:52.0192734Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould create a new session with custom name
+2026-02-05T16:57:52.0194412Z [22m[39m[2026-02-05T16:57:52.016Z] [INFO] Created new session {
+2026-02-05T16:57:52.0195370Z   "sessionId": "1770310672016-2fe66651d65e404f",
+2026-02-05T16:57:52.0195927Z   "name": "My Test Session"
+2026-02-05T16:57:52.0196320Z }
+2026-02-05T16:57:52.0196506Z 
+2026-02-05T16:57:52.0198462Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould create a session with auto-generated name when none provided
+2026-02-05T16:57:52.0200422Z [22m[39m[2026-02-05T16:57:52.017Z] [INFO] Created new session {
+2026-02-05T16:57:52.0201154Z   "sessionId": "1770310672017-6911f9bd1c834c8b",
+2026-02-05T16:57:52.0201678Z   "name": "Session 1"
+2026-02-05T16:57:52.0202025Z }
+2026-02-05T16:57:52.0202202Z 
+2026-02-05T16:57:52.0206816Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould set new session as active
+2026-02-05T16:57:52.0210607Z [22m[39m[2026-02-05T16:57:52.018Z] [INFO] Created new session {
+2026-02-05T16:57:52.0211652Z   "sessionId": "1770310672018-b251c18ba77879c5",
+2026-02-05T16:57:52.0212684Z   "name": "Active Test"
+2026-02-05T16:57:52.0213080Z }
+2026-02-05T16:57:52.0213253Z 
+2026-02-05T16:57:52.0217508Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0219304Z [22m[39m[2026-02-05T16:57:52.019Z] [INFO] Created new session {
+2026-02-05T16:57:52.0219997Z   "sessionId": "1770310672019-a7ea50ca9eeae013",
+2026-02-05T16:57:52.0220833Z   "name": "Session 0"
+2026-02-05T16:57:52.0221720Z }
+2026-02-05T16:57:52.0221875Z 
+2026-02-05T16:57:52.0223493Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0225676Z [22m[39m[2026-02-05T16:57:52.019Z] [INFO] Created new session {
+2026-02-05T16:57:52.0226382Z   "sessionId": "1770310672019-843baf130283d7d7",
+2026-02-05T16:57:52.0226879Z   "name": "Session 1"
+2026-02-05T16:57:52.0227208Z }
+2026-02-05T16:57:52.0227361Z 
+2026-02-05T16:57:52.0229080Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0230846Z [22m[39m[2026-02-05T16:57:52.019Z] [INFO] Created new session {
+2026-02-05T16:57:52.0231523Z   "sessionId": "1770310672019-8c4c8f9dfeb457dd",
+2026-02-05T16:57:52.0232021Z   "name": "Session 2"
+2026-02-05T16:57:52.0232348Z }
+2026-02-05T16:57:52.0232511Z 
+2026-02-05T16:57:52.0234213Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0236315Z [22m[39m[2026-02-05T16:57:52.019Z] [INFO] Created new session {
+2026-02-05T16:57:52.0236990Z   "sessionId": "1770310672019-d7b6c4d256e90329",
+2026-02-05T16:57:52.0237485Z   "name": "Session 3"
+2026-02-05T16:57:52.0237829Z }
+2026-02-05T16:57:52.0237984Z 
+2026-02-05T16:57:52.0239676Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0241505Z [22m[39m[2026-02-05T16:57:52.020Z] [INFO] Created new session {
+2026-02-05T16:57:52.0242233Z   "sessionId": "1770310672020-8b37e89182223e43",
+2026-02-05T16:57:52.0242681Z   "name": "Session 4"
+2026-02-05T16:57:52.0243000Z }
+2026-02-05T16:57:52.0243138Z 
+2026-02-05T16:57:52.0244897Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0246579Z [22m[39m[2026-02-05T16:57:52.020Z] [INFO] Created new session {
+2026-02-05T16:57:52.0247228Z   "sessionId": "1770310672020-b24c336b7bb37dd2",
+2026-02-05T16:57:52.0247702Z   "name": "Session 5"
+2026-02-05T16:57:52.0248017Z }
+2026-02-05T16:57:52.0248167Z 
+2026-02-05T16:57:52.0249742Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0251479Z [22m[39m[2026-02-05T16:57:52.020Z] [INFO] Created new session {
+2026-02-05T16:57:52.0252178Z   "sessionId": "1770310672020-a809bce193ad42f6",
+2026-02-05T16:57:52.0252653Z   "name": "Session 6"
+2026-02-05T16:57:52.0253191Z }
+2026-02-05T16:57:52.0253424Z 
+2026-02-05T16:57:52.0256264Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0258147Z [22m[39m[2026-02-05T16:57:52.020Z] [INFO] Created new session {
+2026-02-05T16:57:52.0259094Z   "sessionId": "1770310672020-e8c41e8a7cccd13a",
+2026-02-05T16:57:52.0259663Z   "name": "Session 7"
+2026-02-05T16:57:52.0260026Z }
+2026-02-05T16:57:52.0260204Z 
+2026-02-05T16:57:52.0261269Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0262218Z [22m[39m[2026-02-05T16:57:52.021Z] [INFO] Created new session {
+2026-02-05T16:57:52.0262589Z   "sessionId": "1770310672021-1bafda46c096f4d2",
+2026-02-05T16:57:52.0262864Z   "name": "Session 8"
+2026-02-05T16:57:52.0263049Z }
+2026-02-05T16:57:52.0263132Z 
+2026-02-05T16:57:52.0264048Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0265530Z [22m[39m[2026-02-05T16:57:52.021Z] [INFO] Created new session {
+2026-02-05T16:57:52.0265897Z   "sessionId": "1770310672021-0095ef91a7d96649",
+2026-02-05T16:57:52.0266168Z   "name": "Session 9"
+2026-02-05T16:57:52.0266361Z }
+2026-02-05T16:57:52.0266448Z 
+2026-02-05T16:57:52.0267303Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0268203Z [22m[39m[2026-02-05T16:57:52.021Z] [INFO] Created new session {
+2026-02-05T16:57:52.0268545Z   "sessionId": "1770310672021-57c6041fa7eec96c",
+2026-02-05T16:57:52.0268804Z   "name": "Session 10"
+2026-02-05T16:57:52.0268986Z }
+2026-02-05T16:57:52.0269068Z 
+2026-02-05T16:57:52.0269911Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0270995Z [22m[39m[2026-02-05T16:57:52.021Z] [INFO] Created new session {
+2026-02-05T16:57:52.0271357Z   "sessionId": "1770310672021-e1c87ceb862d6b61",
+2026-02-05T16:57:52.0271618Z   "name": "Session 11"
+2026-02-05T16:57:52.0271806Z }
+2026-02-05T16:57:52.0271889Z 
+2026-02-05T16:57:52.0272738Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0273637Z [22m[39m[2026-02-05T16:57:52.021Z] [INFO] Created new session {
+2026-02-05T16:57:52.0273989Z   "sessionId": "1770310672021-6791ab5e9b570141",
+2026-02-05T16:57:52.0274240Z   "name": "Session 12"
+2026-02-05T16:57:52.0274420Z }
+2026-02-05T16:57:52.0274503Z 
+2026-02-05T16:57:52.0275551Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0276466Z [22m[39m[2026-02-05T16:57:52.022Z] [INFO] Created new session {
+2026-02-05T16:57:52.0276817Z   "sessionId": "1770310672022-a832733af8e13f03",
+2026-02-05T16:57:52.0277080Z   "name": "Session 13"
+2026-02-05T16:57:52.0277254Z }
+2026-02-05T16:57:52.0277340Z 
+2026-02-05T16:57:52.0278179Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0279073Z [22m[39m[2026-02-05T16:57:52.022Z] [INFO] Created new session {
+2026-02-05T16:57:52.0279416Z   "sessionId": "1770310672022-b8a095e9b980d0ca",
+2026-02-05T16:57:52.0279669Z   "name": "Session 14"
+2026-02-05T16:57:52.0279846Z }
+2026-02-05T16:57:52.0279924Z 
+2026-02-05T16:57:52.0280765Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0283018Z [22m[39m[2026-02-05T16:57:52.022Z] [INFO] Created new session {
+2026-02-05T16:57:52.0283650Z   "sessionId": "1770310672022-a54ee3ae8d6dab3d",
+2026-02-05T16:57:52.0284281Z   "name": "Session 15"
+2026-02-05T16:57:52.0284750Z }
+2026-02-05T16:57:52.0284894Z 
+2026-02-05T16:57:52.0287372Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0288970Z [22m[39m[2026-02-05T16:57:52.022Z] [INFO] Created new session {
+2026-02-05T16:57:52.0289581Z   "sessionId": "1770310672022-3693504daa2dee47",
+2026-02-05T16:57:52.0290025Z   "name": "Session 16"
+2026-02-05T16:57:52.0290323Z }
+2026-02-05T16:57:52.0290458Z 
+2026-02-05T16:57:52.0291774Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0292699Z [22m[39m[2026-02-05T16:57:52.023Z] [INFO] Created new session {
+2026-02-05T16:57:52.0293056Z   "sessionId": "1770310672023-b254effb2d878579",
+2026-02-05T16:57:52.0293321Z   "name": "Session 17"
+2026-02-05T16:57:52.0293495Z }
+2026-02-05T16:57:52.0293580Z 
+2026-02-05T16:57:52.0294423Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0295547Z [22m[39m[2026-02-05T16:57:52.023Z] [INFO] Created new session {
+2026-02-05T16:57:52.0295926Z   "sessionId": "1770310672023-74437258f3a5e9a7",
+2026-02-05T16:57:52.0296191Z   "name": "Session 18"
+2026-02-05T16:57:52.0296384Z }
+2026-02-05T16:57:52.0296464Z 
+2026-02-05T16:57:52.0297891Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0299696Z [22m[39m[2026-02-05T16:57:52.023Z] [INFO] Created new session {
+2026-02-05T16:57:52.0300302Z   "sessionId": "1770310672023-d84d627fa38700b9",
+2026-02-05T16:57:52.0300741Z   "name": "Session 19"
+2026-02-05T16:57:52.0301044Z }
+2026-02-05T16:57:52.0301180Z 
+2026-02-05T16:57:52.0302567Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0303479Z [22m[39m[2026-02-05T16:57:52.023Z] [INFO] Created new session {
+2026-02-05T16:57:52.0303835Z   "sessionId": "1770310672023-d63b1500f24a3989",
+2026-02-05T16:57:52.0304087Z   "name": "Session 20"
+2026-02-05T16:57:52.0304264Z }
+2026-02-05T16:57:52.0304348Z 
+2026-02-05T16:57:52.0305419Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0306330Z [22m[39m[2026-02-05T16:57:52.023Z] [INFO] Created new session {
+2026-02-05T16:57:52.0306667Z   "sessionId": "1770310672023-0a0b49c79e024cb8",
+2026-02-05T16:57:52.0306923Z   "name": "Session 21"
+2026-02-05T16:57:52.0307097Z }
+2026-02-05T16:57:52.0307183Z 
+2026-02-05T16:57:52.0308022Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0308910Z [22m[39m[2026-02-05T16:57:52.023Z] [INFO] Created new session {
+2026-02-05T16:57:52.0309387Z   "sessionId": "1770310672023-4aa18dd80d23609f",
+2026-02-05T16:57:52.0309838Z   "name": "Session 22"
+2026-02-05T16:57:52.0310163Z }
+2026-02-05T16:57:52.0310299Z 
+2026-02-05T16:57:52.0311885Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0313652Z [22m[39m[2026-02-05T16:57:52.023Z] [INFO] Created new session {
+2026-02-05T16:57:52.0314326Z   "sessionId": "1770310672023-54b2330c62f82755",
+2026-02-05T16:57:52.0315233Z   "name": "Session 23"
+2026-02-05T16:57:52.0315605Z }
+2026-02-05T16:57:52.0315762Z 
+2026-02-05T16:57:52.0317445Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0319204Z [22m[39m[2026-02-05T16:57:52.023Z] [INFO] Created new session {
+2026-02-05T16:57:52.0319863Z   "sessionId": "1770310672023-69e77667c6481561",
+2026-02-05T16:57:52.0320329Z   "name": "Session 24"
+2026-02-05T16:57:52.0320633Z }
+2026-02-05T16:57:52.0320783Z 
+2026-02-05T16:57:52.0322406Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0324102Z [22m[39m[2026-02-05T16:57:52.023Z] [INFO] Created new session {
+2026-02-05T16:57:52.0324900Z   "sessionId": "1770310672023-ff1337702a2e5901",
+2026-02-05T16:57:52.0325386Z   "name": "Session 25"
+2026-02-05T16:57:52.0325733Z }
+2026-02-05T16:57:52.0325881Z 
+2026-02-05T16:57:52.0327530Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0329134Z [22m[39m[2026-02-05T16:57:52.024Z] [INFO] Created new session {
+2026-02-05T16:57:52.0329667Z   "sessionId": "1770310672024-d5efae4ad41c68ac",
+2026-02-05T16:57:52.0329948Z   "name": "Session 26"
+2026-02-05T16:57:52.0330141Z }
+2026-02-05T16:57:52.0330266Z 
+2026-02-05T16:57:52.0331373Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0332663Z [22m[39m[2026-02-05T16:57:52.024Z] [INFO] Created new session {
+2026-02-05T16:57:52.0333157Z   "sessionId": "1770310672024-c9158c961dced4a7",
+2026-02-05T16:57:52.0333433Z   "name": "Session 27"
+2026-02-05T16:57:52.0333707Z }
+2026-02-05T16:57:52.0333817Z 
+2026-02-05T16:57:52.0335010Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0336158Z [22m[39m[2026-02-05T16:57:52.024Z] [INFO] Created new session {
+2026-02-05T16:57:52.0336574Z   "sessionId": "1770310672024-c1ed91890f977692",
+2026-02-05T16:57:52.0336840Z   "name": "Session 28"
+2026-02-05T16:57:52.0337134Z }
+2026-02-05T16:57:52.0337219Z 
+2026-02-05T16:57:52.0338199Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0339233Z [22m[39m[2026-02-05T16:57:52.024Z] [INFO] Created new session {
+2026-02-05T16:57:52.0339698Z   "sessionId": "1770310672024-03e450787055e731",
+2026-02-05T16:57:52.0339970Z   "name": "Session 29"
+2026-02-05T16:57:52.0340149Z }
+2026-02-05T16:57:52.0340298Z 
+2026-02-05T16:57:52.0341882Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0343766Z [22m[39m[2026-02-05T16:57:52.024Z] [INFO] Created new session {
+2026-02-05T16:57:52.0344331Z   "sessionId": "1770310672024-30515956435e4fc4",
+2026-02-05T16:57:52.0344862Z   "name": "Session 30"
+2026-02-05T16:57:52.0345105Z }
+2026-02-05T16:57:52.0345198Z 
+2026-02-05T16:57:52.0346681Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0350413Z [22m[39m[2026-02-05T16:57:52.024Z] [INFO] Created new session {
+2026-02-05T16:57:52.0351114Z   "sessionId": "1770310672024-b9db5dcac4dfec72",
+2026-02-05T16:57:52.0351828Z   "name": "Session 31"
+2026-02-05T16:57:52.0352183Z }
+2026-02-05T16:57:52.0352335Z 
+2026-02-05T16:57:52.0353645Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0354965Z [22m[39m[2026-02-05T16:57:52.025Z] [INFO] Created new session {
+2026-02-05T16:57:52.0355477Z   "sessionId": "1770310672025-da140037b97ed5b1",
+2026-02-05T16:57:52.0355813Z   "name": "Session 32"
+2026-02-05T16:57:52.0356078Z }
+2026-02-05T16:57:52.0356206Z 
+2026-02-05T16:57:52.0357218Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0358281Z [22m[39m[2026-02-05T16:57:52.025Z] [INFO] Created new session {
+2026-02-05T16:57:52.0358765Z   "sessionId": "1770310672025-6cd136445aae7dd4",
+2026-02-05T16:57:52.0359046Z   "name": "Session 33"
+2026-02-05T16:57:52.0359241Z }
+2026-02-05T16:57:52.0359392Z 
+2026-02-05T16:57:52.0360407Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0361454Z [22m[39m[2026-02-05T16:57:52.025Z] [INFO] Created new session {
+2026-02-05T16:57:52.0361819Z   "sessionId": "1770310672025-e76c678c5b73bce8",
+2026-02-05T16:57:52.0362181Z   "name": "Session 34"
+2026-02-05T16:57:52.0362374Z }
+2026-02-05T16:57:52.0362455Z 
+2026-02-05T16:57:52.0363315Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0364745Z [22m[39m[2026-02-05T16:57:52.025Z] [INFO] Created new session {
+2026-02-05T16:57:52.0365148Z   "sessionId": "1770310672025-ac30b825e5de4e0f",
+2026-02-05T16:57:52.0365431Z   "name": "Session 35"
+2026-02-05T16:57:52.0365627Z }
+2026-02-05T16:57:52.0365797Z 
+2026-02-05T16:57:52.0367444Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0369173Z [22m[39m[2026-02-05T16:57:52.025Z] [INFO] Created new session {
+2026-02-05T16:57:52.0369834Z   "sessionId": "1770310672025-dd33864619be3e65",
+2026-02-05T16:57:52.0370304Z   "name": "Session 36"
+2026-02-05T16:57:52.0370633Z }
+2026-02-05T16:57:52.0370781Z 
+2026-02-05T16:57:52.0372478Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0373495Z [22m[39m[2026-02-05T16:57:52.025Z] [INFO] Created new session {
+2026-02-05T16:57:52.0373869Z   "sessionId": "1770310672025-5b7e8beba7198700",
+2026-02-05T16:57:52.0374135Z   "name": "Session 37"
+2026-02-05T16:57:52.0374326Z }
+2026-02-05T16:57:52.0374408Z 
+2026-02-05T16:57:52.0375536Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0376451Z [22m[39m[2026-02-05T16:57:52.025Z] [INFO] Created new session {
+2026-02-05T16:57:52.0376813Z   "sessionId": "1770310672025-ae3b9a77a2a8dfb9",
+2026-02-05T16:57:52.0377071Z   "name": "Session 38"
+2026-02-05T16:57:52.0377249Z }
+2026-02-05T16:57:52.0377331Z 
+2026-02-05T16:57:52.0378184Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0379077Z [22m[39m[2026-02-05T16:57:52.026Z] [INFO] Created new session {
+2026-02-05T16:57:52.0379552Z   "sessionId": "1770310672026-66440f8a75f33c8d",
+2026-02-05T16:57:52.0379993Z   "name": "Session 39"
+2026-02-05T16:57:52.0380183Z }
+2026-02-05T16:57:52.0380270Z 
+2026-02-05T16:57:52.0381126Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0382018Z [22m[39m[2026-02-05T16:57:52.026Z] [INFO] Created new session {
+2026-02-05T16:57:52.0382356Z   "sessionId": "1770310672026-c4a831d5918225bf",
+2026-02-05T16:57:52.0382613Z   "name": "Session 40"
+2026-02-05T16:57:52.0382791Z }
+2026-02-05T16:57:52.0382871Z 
+2026-02-05T16:57:52.0383717Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0384772Z [22m[39m[2026-02-05T16:57:52.026Z] [INFO] Created new session {
+2026-02-05T16:57:52.0385141Z   "sessionId": "1770310672026-0005093c8642c3e9",
+2026-02-05T16:57:52.0385396Z   "name": "Session 41"
+2026-02-05T16:57:52.0385578Z }
+2026-02-05T16:57:52.0385659Z 
+2026-02-05T16:57:52.0386523Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0387415Z [22m[39m[2026-02-05T16:57:52.026Z] [INFO] Created new session {
+2026-02-05T16:57:52.0387836Z   "sessionId": "1770310672026-157e4fc757114bdf",
+2026-02-05T16:57:52.0388301Z   "name": "Session 42"
+2026-02-05T16:57:52.0388586Z }
+2026-02-05T16:57:52.0388717Z 
+2026-02-05T16:57:52.0390192Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0392004Z [22m[39m[2026-02-05T16:57:52.026Z] [INFO] Created new session {
+2026-02-05T16:57:52.0392374Z   "sessionId": "1770310672026-cff77c6918a49e32",
+2026-02-05T16:57:52.0392688Z   "name": "Session 43"
+2026-02-05T16:57:52.0392994Z }
+2026-02-05T16:57:52.0393095Z 
+2026-02-05T16:57:52.0394440Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0396277Z [22m[39m[2026-02-05T16:57:52.026Z] [INFO] Created new session {
+2026-02-05T16:57:52.0396910Z   "sessionId": "1770310672026-29154092e1ab662a",
+2026-02-05T16:57:52.0397337Z   "name": "Session 44"
+2026-02-05T16:57:52.0397628Z }
+2026-02-05T16:57:52.0397763Z 
+2026-02-05T16:57:52.0399415Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0401240Z [22m[39m[2026-02-05T16:57:52.026Z] [INFO] Created new session {
+2026-02-05T16:57:52.0401938Z   "sessionId": "1770310672026-19b9969b69202e7a",
+2026-02-05T16:57:52.0402471Z   "name": "Session 45"
+2026-02-05T16:57:52.0402799Z }
+2026-02-05T16:57:52.0402928Z 
+2026-02-05T16:57:52.0404524Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0406505Z [22m[39m[2026-02-05T16:57:52.027Z] [INFO] Created new session {
+2026-02-05T16:57:52.0407191Z   "sessionId": "1770310672027-ccd34266e37f8e2a",
+2026-02-05T16:57:52.0407705Z   "name": "Session 46"
+2026-02-05T16:57:52.0408055Z }
+2026-02-05T16:57:52.0408217Z 
+2026-02-05T16:57:52.0409850Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0411672Z [22m[39m[2026-02-05T16:57:52.027Z] [INFO] Created new session {
+2026-02-05T16:57:52.0412348Z   "sessionId": "1770310672027-2fc4c4436cf9e042",
+2026-02-05T16:57:52.0413066Z   "name": "Session 47"
+2026-02-05T16:57:52.0413406Z }
+2026-02-05T16:57:52.0413549Z 
+2026-02-05T16:57:52.0415401Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0417169Z [22m[39m[2026-02-05T16:57:52.027Z] [INFO] Created new session {
+2026-02-05T16:57:52.0417801Z   "sessionId": "1770310672027-87da7589fc2a04bd",
+2026-02-05T16:57:52.0418302Z   "name": "Session 48"
+2026-02-05T16:57:52.0418659Z }
+2026-02-05T16:57:52.0418819Z 
+2026-02-05T16:57:52.0420539Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0422271Z [22m[39m[2026-02-05T16:57:52.027Z] [INFO] Created new session {
+2026-02-05T16:57:52.0422875Z   "sessionId": "1770310672027-a1878b0058bc776d",
+2026-02-05T16:57:52.0423178Z   "name": "Session 49"
+2026-02-05T16:57:52.0423370Z }
+2026-02-05T16:57:52.0423463Z 
+2026-02-05T16:57:52.0424357Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0425607Z [22m[39m[2026-02-05T16:57:52.027Z] [INFO] Session archived {
+2026-02-05T16:57:52.0425965Z   "sessionId": "1770310672019-a7ea50ca9eeae013"
+2026-02-05T16:57:52.0426226Z }
+2026-02-05T16:57:52.0426312Z 
+2026-02-05T16:57:52.0427511Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Creation[2m > [22m[2mshould archive oldest session when maxSessions reached
+2026-02-05T16:57:52.0429134Z [22m[39m[2026-02-05T16:57:52.028Z] [INFO] Created new session {
+2026-02-05T16:57:52.0429707Z   "sessionId": "1770310672028-5841ce9f03864f03",
+2026-02-05T16:57:52.0429979Z   "name": "Overflow Session"
+2026-02-05T16:57:52.0430184Z }
+2026-02-05T16:57:52.0430275Z 
+2026-02-05T16:57:52.0431037Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Management[2m > [22m[2mshould get a session by ID
+2026-02-05T16:57:52.0431879Z [22m[39m[2026-02-05T16:57:52.028Z] [INFO] Created new session {
+2026-02-05T16:57:52.0432225Z   "sessionId": "1770310672028-14a27fe46be902a2",
+2026-02-05T16:57:52.0432492Z   "name": "Test Session"
+2026-02-05T16:57:52.0432744Z }
+2026-02-05T16:57:52.0432897Z 
+2026-02-05T16:57:52.0434153Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Management[2m > [22m[2mshould return null for non-existent session
+2026-02-05T16:57:52.0436032Z [22m[39m[2026-02-05T16:57:52.029Z] [INFO] Created new session {
+2026-02-05T16:57:52.0436788Z   "sessionId": "1770310672029-becb3d8c39dce1ae",
+2026-02-05T16:57:52.0437317Z   "name": "Test Session"
+2026-02-05T16:57:52.0437622Z }
+2026-02-05T16:57:52.0437778Z 
+2026-02-05T16:57:52.0439173Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Management[2m > [22m[2mshould rename a session
+2026-02-05T16:57:52.0440606Z [22m[39m[2026-02-05T16:57:52.030Z] [INFO] Created new session {
+2026-02-05T16:57:52.0441232Z   "sessionId": "1770310672030-2f89ede324c743e1",
+2026-02-05T16:57:52.0441669Z   "name": "Test Session"
+2026-02-05T16:57:52.0442012Z }
+2026-02-05T16:57:52.0442149Z 
+2026-02-05T16:57:52.0443687Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Management[2m > [22m[2mshould throw error when renaming with empty name
+2026-02-05T16:57:52.0445527Z [22m[39m[2026-02-05T16:57:52.031Z] [INFO] Created new session {
+2026-02-05T16:57:52.0446155Z   "sessionId": "1770310672031-0cf9cdd76a8495ee",
+2026-02-05T16:57:52.0446599Z   "name": "Test Session"
+2026-02-05T16:57:52.0446906Z }
+2026-02-05T16:57:52.0447051Z 
+2026-02-05T16:57:52.0448994Z [90mstderr[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Management[2m > [22m[2mshould return false when deleting non-existent session
+2026-02-05T16:57:52.0450803Z [22m[39m[2026-02-05T16:57:52.034Z] [WARN] Session not found for deletion {
+2026-02-05T16:57:52.0451198Z   "sessionId": "non-existent"
+2026-02-05T16:57:52.0451425Z }
+2026-02-05T16:57:52.0451517Z 
+2026-02-05T16:57:52.0452870Z [90mstderr[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mMessage Management[2m > [22m[2mshould return null when updating non-existent message
+2026-02-05T16:57:52.0454986Z [22m[39m[2026-02-05T16:57:52.041Z] [WARN] Message not found for update {
+2026-02-05T16:57:52.0455715Z   "sessionId": "1770310672041-51511c9b1ca627cc",
+2026-02-05T16:57:52.0456235Z   "messageId": "non-existent"
+2026-02-05T16:57:52.0456627Z }
+2026-02-05T16:57:52.0456779Z 
+2026-02-05T16:57:52.0458169Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Management[2m > [22m[2mshould delete a session
+2026-02-05T16:57:52.0459720Z [22m[39m[2026-02-05T16:57:52.033Z] [INFO] Created new session {
+2026-02-05T16:57:52.0460350Z   "sessionId": "1770310672033-74b140c0695595f2",
+2026-02-05T16:57:52.0460798Z   "name": "Test Session"
+2026-02-05T16:57:52.0461122Z }
+2026-02-05T16:57:52.0461266Z 
+2026-02-05T16:57:52.0462616Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Management[2m > [22m[2mshould delete a session
+2026-02-05T16:57:52.0464067Z [22m[39m[2026-02-05T16:57:52.033Z] [INFO] Session deleted {
+2026-02-05T16:57:52.0464898Z   "sessionId": "1770310672033-74b140c0695595f2"
+2026-02-05T16:57:52.0465205Z }
+2026-02-05T16:57:52.0465482Z 
+2026-02-05T16:57:52.0466399Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Management[2m > [22m[2mshould return false when deleting non-existent session
+2026-02-05T16:57:52.0467336Z [22m[39m[2026-02-05T16:57:52.033Z] [INFO] Created new session {
+2026-02-05T16:57:52.0467697Z   "sessionId": "1770310672033-e7bd4712e34db2f0",
+2026-02-05T16:57:52.0467965Z   "name": "Test Session"
+2026-02-05T16:57:52.0468160Z }
+2026-02-05T16:57:52.0468242Z 
+2026-02-05T16:57:52.0468996Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Management[2m > [22m[2mshould switch active session
+2026-02-05T16:57:52.0469829Z [22m[39m[2026-02-05T16:57:52.034Z] [INFO] Created new session {
+2026-02-05T16:57:52.0470183Z   "sessionId": "1770310672034-3733359831fe2672",
+2026-02-05T16:57:52.0470437Z   "name": "Test Session"
+2026-02-05T16:57:52.0470627Z }
+2026-02-05T16:57:52.0470715Z 
+2026-02-05T16:57:52.0471470Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Management[2m > [22m[2mshould switch active session
+2026-02-05T16:57:52.0472303Z [22m[39m[2026-02-05T16:57:52.035Z] [INFO] Created new session {
+2026-02-05T16:57:52.0472663Z   "sessionId": "1770310672034-91b7c53a9fc34b61",
+2026-02-05T16:57:52.0472932Z   "name": "Second Session"
+2026-02-05T16:57:52.0473127Z }
+2026-02-05T16:57:52.0473215Z 
+2026-02-05T16:57:52.0473938Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Management[2m > [22m[2mshould archive a session
+2026-02-05T16:57:52.0474993Z [22m[39m[2026-02-05T16:57:52.035Z] [INFO] Created new session {
+2026-02-05T16:57:52.0475351Z   "sessionId": "1770310672035-cf06bcf51964f932",
+2026-02-05T16:57:52.0475614Z   "name": "Test Session"
+2026-02-05T16:57:52.0475798Z }
+2026-02-05T16:57:52.0475884Z 
+2026-02-05T16:57:52.0476612Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Management[2m > [22m[2mshould archive a session
+2026-02-05T16:57:52.0477558Z [22m[39m[2026-02-05T16:57:52.035Z] [INFO] Session archived {
+2026-02-05T16:57:52.0477909Z   "sessionId": "1770310672035-cf06bcf51964f932"
+2026-02-05T16:57:52.0478155Z }
+2026-02-05T16:57:52.0478232Z 
+2026-02-05T16:57:52.0478972Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Management[2m > [22m[2mshould unarchive a session
+2026-02-05T16:57:52.0479867Z [22m[39m[2026-02-05T16:57:52.036Z] [INFO] Created new session {
+2026-02-05T16:57:52.0480514Z   "sessionId": "1770310672036-428d6c7e536e99e5",
+2026-02-05T16:57:52.0480970Z   "name": "Test Session"
+2026-02-05T16:57:52.0481280Z }
+2026-02-05T16:57:52.0481423Z 
+2026-02-05T16:57:52.0482780Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Management[2m > [22m[2mshould unarchive a session
+2026-02-05T16:57:52.0484013Z [22m[39m[2026-02-05T16:57:52.036Z] [INFO] Session archived {
+2026-02-05T16:57:52.0484357Z   "sessionId": "1770310672036-428d6c7e536e99e5"
+2026-02-05T16:57:52.0484866Z }
+2026-02-05T16:57:52.0484954Z 
+2026-02-05T16:57:52.0485708Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Management[2m > [22m[2mshould unarchive a session
+2026-02-05T16:57:52.0486529Z [22m[39m[2026-02-05T16:57:52.036Z] [INFO] Session unarchived {
+2026-02-05T16:57:52.0486878Z   "sessionId": "1770310672036-428d6c7e536e99e5"
+2026-02-05T16:57:52.0487127Z }
+2026-02-05T16:57:52.0487209Z 
+2026-02-05T16:57:52.0487970Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mMessage Management[2m > [22m[2mshould add a message to session
+2026-02-05T16:57:52.0488813Z [22m[39m[2026-02-05T16:57:52.037Z] [INFO] Created new session {
+2026-02-05T16:57:52.0489338Z   "sessionId": "1770310672037-cdacd5c1c03e8229",
+2026-02-05T16:57:52.0489604Z   "name": "Test Session"
+2026-02-05T16:57:52.0489796Z }
+2026-02-05T16:57:52.0489876Z 
+2026-02-05T16:57:52.0490677Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mMessage Management[2m > [22m[2mshould get all messages from session
+2026-02-05T16:57:52.0491528Z [22m[39m[2026-02-05T16:57:52.038Z] [INFO] Created new session {
+2026-02-05T16:57:52.0491883Z   "sessionId": "1770310672037-b2a468554b3558a9",
+2026-02-05T16:57:52.0492144Z   "name": "Test Session"
+2026-02-05T16:57:52.0492327Z }
+2026-02-05T16:57:52.0492406Z 
+2026-02-05T16:57:52.0493143Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mMessage Management[2m > [22m[2mshould update a message
+2026-02-05T16:57:52.0494674Z [22m[39m[2026-02-05T16:57:52.039Z] [INFO] Created new session {
+2026-02-05T16:57:52.0495295Z   "sessionId": "1770310672039-6be57a557d1ff0a4",
+2026-02-05T16:57:52.0495756Z   "name": "Test Session"
+2026-02-05T16:57:52.0496116Z }
+2026-02-05T16:57:52.0496260Z 
+2026-02-05T16:57:52.0497567Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mMessage Management[2m > [22m[2mshould return null when updating non-existent message
+2026-02-05T16:57:52.0498493Z [22m[39m[2026-02-05T16:57:52.041Z] [INFO] Created new session {
+2026-02-05T16:57:52.0498841Z   "sessionId": "1770310672041-51511c9b1ca627cc",
+2026-02-05T16:57:52.0499098Z   "name": "Test Session"
+2026-02-05T16:57:52.0499285Z }
+2026-02-05T16:57:52.0499364Z 
+2026-02-05T16:57:52.0500081Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mMessage Management[2m > [22m[2mshould delete a message
+2026-02-05T16:57:52.0500899Z [22m[39m[2026-02-05T16:57:52.041Z] [INFO] Created new session {
+2026-02-05T16:57:52.0501246Z   "sessionId": "1770310672041-a01d4360eb9283b1",
+2026-02-05T16:57:52.0501506Z   "name": "Test Session"
+2026-02-05T16:57:52.0501691Z }
+2026-02-05T16:57:52.0501769Z 
+2026-02-05T16:57:52.0502766Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mMessage Management[2m > [22m[2mshould update session metadata when adding messages
+2026-02-05T16:57:52.0503672Z [22m[39m[2026-02-05T16:57:52.042Z] [INFO] Created new session {
+2026-02-05T16:57:52.0504021Z   "sessionId": "1770310672042-9f83127aa2d0c468",
+2026-02-05T16:57:52.0504276Z   "name": "Test Session"
+2026-02-05T16:57:52.0504456Z }
+2026-02-05T16:57:52.0504698Z 
+2026-02-05T16:57:52.0505509Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSearch[2m > [22m[2mshould search across all sessions
+2026-02-05T16:57:52.0506787Z [22m[39m[2026-02-05T16:57:52.043Z] [INFO] Created new session {
+2026-02-05T16:57:52.0507496Z   "sessionId": "1770310672043-6d223547096cd853",
+2026-02-05T16:57:52.0508018Z   "name": "JavaScript Help"
+2026-02-05T16:57:52.0508414Z }
+2026-02-05T16:57:52.0508584Z 
+2026-02-05T16:57:52.0510036Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSearch[2m > [22m[2mshould search across all sessions
+2026-02-05T16:57:52.0511676Z [22m[39m[2026-02-05T16:57:52.043Z] [INFO] Created new session {
+2026-02-05T16:57:52.0512360Z   "sessionId": "1770310672043-7ece41283911507f",
+2026-02-05T16:57:52.0512866Z   "name": "Python Tutorial"
+2026-02-05T16:57:52.0513267Z }
+2026-02-05T16:57:52.0513433Z 
+2026-02-05T16:57:52.0515112Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSearch[2m > [22m[2mshould search by message content
+2026-02-05T16:57:52.0516056Z [22m[39m[2026-02-05T16:57:52.044Z] [INFO] Created new session {
+2026-02-05T16:57:52.0516431Z   "sessionId": "1770310672044-cec142a2f4b5481b",
+2026-02-05T16:57:52.0516702Z   "name": "JavaScript Help"
+2026-02-05T16:57:52.0516909Z }
+2026-02-05T16:57:52.0517175Z 
+2026-02-05T16:57:52.0518198Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSearch[2m > [22m[2mshould search by message content
+2026-02-05T16:57:52.0519811Z [22m[39m[2026-02-05T16:57:52.044Z] [INFO] Created new session {
+2026-02-05T16:57:52.0520496Z   "sessionId": "1770310672044-7f5896217b0ff803",
+2026-02-05T16:57:52.0520987Z   "name": "Python Tutorial"
+2026-02-05T16:57:52.0521357Z }
+2026-02-05T16:57:52.0521815Z 
+2026-02-05T16:57:52.0523766Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSearch[2m > [22m[2mshould return all sessions when query is empty
+2026-02-05T16:57:52.0525652Z [22m[39m[2026-02-05T16:57:52.045Z] [INFO] Created new session {
+2026-02-05T16:57:52.0526342Z   "sessionId": "1770310672045-d7da337487bd458c",
+2026-02-05T16:57:52.0526871Z   "name": "JavaScript Help"
+2026-02-05T16:57:52.0527266Z }
+2026-02-05T16:57:52.0527457Z 
+2026-02-05T16:57:52.0529063Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSearch[2m > [22m[2mshould return all sessions when query is empty
+2026-02-05T16:57:52.0530754Z [22m[39m[2026-02-05T16:57:52.045Z] [INFO] Created new session {
+2026-02-05T16:57:52.0531455Z   "sessionId": "1770310672045-75b229c33f39da8e",
+2026-02-05T16:57:52.0531960Z   "name": "Python Tutorial"
+2026-02-05T16:57:52.0532333Z }
+2026-02-05T16:57:52.0532496Z 
+2026-02-05T16:57:52.0534042Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSearch[2m > [22m[2mshould search messages within a specific session
+2026-02-05T16:57:52.0535913Z [22m[39m[2026-02-05T16:57:52.045Z] [INFO] Created new session {
+2026-02-05T16:57:52.0536601Z   "sessionId": "1770310672045-325fec9bcbd20af7",
+2026-02-05T16:57:52.0537114Z   "name": "JavaScript Help"
+2026-02-05T16:57:52.0537482Z }
+2026-02-05T16:57:52.0537639Z 
+2026-02-05T16:57:52.0539162Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSearch[2m > [22m[2mshould search messages within a specific session
+2026-02-05T16:57:52.0541060Z [22m[39m[2026-02-05T16:57:52.046Z] [INFO] Created new session {
+2026-02-05T16:57:52.0541769Z   "sessionId": "1770310672046-6348daba189aa133",
+2026-02-05T16:57:52.0542273Z   "name": "Python Tutorial"
+2026-02-05T16:57:52.0542635Z }
+2026-02-05T16:57:52.0542797Z 
+2026-02-05T16:57:52.0544275Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mExport/Import[2m > [22m[2mshould export a session to JSON
+2026-02-05T16:57:52.0546006Z [22m[39m[2026-02-05T16:57:52.046Z] [INFO] Created new session {
+2026-02-05T16:57:52.0546689Z   "sessionId": "1770310672046-d991b31cb2df977c",
+2026-02-05T16:57:52.0547209Z   "name": "Export Test"
+2026-02-05T16:57:52.0547568Z }
+2026-02-05T16:57:52.0547731Z 
+2026-02-05T16:57:52.0549231Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mExport/Import[2m > [22m[2mshould import a session from JSON
+2026-02-05T16:57:52.0550889Z [22m[39m[2026-02-05T16:57:52.047Z] [INFO] Created new session {
+2026-02-05T16:57:52.0551612Z   "sessionId": "1770310672047-ddaf39fbec82dc57",
+2026-02-05T16:57:52.0552124Z   "name": "Export Test"
+2026-02-05T16:57:52.0552486Z }
+2026-02-05T16:57:52.0552645Z 
+2026-02-05T16:57:52.0554139Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mExport/Import[2m > [22m[2mshould import a session from JSON
+2026-02-05T16:57:52.0555962Z [22m[39m[2026-02-05T16:57:52.048Z] [INFO] Session imported {
+2026-02-05T16:57:52.0556640Z   "sessionId": "1770310672048-2ad426d575149fef",
+2026-02-05T16:57:52.0557152Z   "name": "Export Test"
+2026-02-05T16:57:52.0557538Z }
+2026-02-05T16:57:52.0557702Z 
+2026-02-05T16:57:52.0559291Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mExport/Import[2m > [22m[2mshould throw error when importing invalid JSON
+2026-02-05T16:57:52.0561275Z [22m[39m[2026-02-05T16:57:52.048Z] [INFO] Created new session {
+2026-02-05T16:57:52.0561969Z   "sessionId": "1770310672048-f8030fa1f4c189a3",
+2026-02-05T16:57:52.0562476Z   "name": "Export Test"
+2026-02-05T16:57:52.0562826Z }
+2026-02-05T16:57:52.0562992Z 
+2026-02-05T16:57:52.0567277Z [90mstderr[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mExport/Import[2m > [22m[2mshould throw error when importing invalid JSON
+2026-02-05T16:57:52.0569423Z [22m[39m[2026-02-05T16:57:52.049Z] [ERROR] Failed to import session
+2026-02-05T16:57:52.0570693Z Error: Unexpected token 'i', "invalid json" is not valid JSON
+2026-02-05T16:57:52.0572156Z Stack: SyntaxError: Unexpected token 'i', "invalid json" is not valid JSON
+2026-02-05T16:57:52.0574157Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mMigration[2m > [22m[2mshould migrate legacy chat history
+2026-02-05T16:57:52.0576334Z [22m[39m[2026-02-05T16:57:52.056Z] [INFO] Migrating legacy chat history {
+2026-02-05T16:57:52.0577309Z     at JSON.parse (<anonymous>)
+2026-02-05T16:57:52.0577761Z   "messageCount": 2
+2026-02-05T16:57:52.0579127Z     at SessionManager.importSession (/home/runner/work/AI-Prompt-Refiner/AI-Prompt-Refiner/src/services/SessionManager.ts:630:31)
+2026-02-05T16:57:52.0580182Z }
+2026-02-05T16:57:52.0580901Z 
+2026-02-05T16:57:52.0581797Z     at /home/runner/work/AI-Prompt-Refiner/AI-Prompt-Refiner/src/services/__tests__/SessionManager.test.ts:386:35
+2026-02-05T16:57:52.0585933Z     at file:///home/runner/work/AI-Prompt-Refiner/AI-Prompt-Refiner/node_modules/@vitest/runner/dist/index.js:145:11
+2026-02-05T16:57:52.0587446Z     at file:///home/runner/work/AI-Prompt-Refiner/AI-Prompt-Refiner/node_modules/@vitest/runner/dist/index.js:915:26
+2026-02-05T16:57:52.0588888Z     at file:///home/runner/work/AI-Prompt-Refiner/AI-Prompt-Refiner/node_modules/@vitest/runner/dist/index.js:1243:20
+2026-02-05T16:57:52.0591246Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mMigration[2m > [22m[2mshould migrate legacy chat history
+2026-02-05T16:57:52.0593685Z     at new Promise (<anonymous>)
+2026-02-05T16:57:52.0594999Z     at runWithTimeout (file:///home/runner/work/AI-Prompt-Refiner/AI-Prompt-Refiner/node_modules/@vitest/runner/dist/index.js:1209:10)
+2026-02-05T16:57:52.0597958Z     at file:///home/runner/work/AI-Prompt-Refiner/AI-Prompt-Refiner/node_modules/@vitest/runner/dist/index.js:1653:37
+2026-02-05T16:57:52.0599398Z     at Traces.$ (file:///home/runner/work/AI-Prompt-Refiner/AI-Prompt-Refiner/node_modules/vitest/dist/chunks/traces.CCmnQaNT.js:142:27)
+2026-02-05T16:57:52.0599923Z 
+2026-02-05T16:57:52.0600334Z [22m[39m[2026-02-05T16:57:52.057Z] [INFO] Migration completed successfully {
+2026-02-05T16:57:52.0600763Z   "sessionId": "1770310672056-672a09651e982510",
+2026-02-05T16:57:52.0601042Z   "messageCount": 2
+2026-02-05T16:57:52.0601228Z }
+2026-02-05T16:57:52.0601312Z 
+2026-02-05T16:57:52.0602074Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Stats[2m > [22m[2mshould return correct stats
+2026-02-05T16:57:52.0602895Z [22m[39m[2026-02-05T16:57:52.059Z] [INFO] Created new session {
+2026-02-05T16:57:52.0603270Z   "sessionId": "1770310672059-3cabc03c1c1da5f3",
+2026-02-05T16:57:52.0603534Z   "name": "Session 1"
+2026-02-05T16:57:52.0603717Z }
+2026-02-05T16:57:52.0603807Z 
+2026-02-05T16:57:52.0607574Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Stats[2m > [22m[2mshould return correct stats
+2026-02-05T16:57:52.0609096Z [22m[39m[2026-02-05T16:57:52.059Z] [INFO] Created new session {
+2026-02-05T16:57:52.0609717Z   "sessionId": "1770310672059-36d69fc13bfcf923",
+2026-02-05T16:57:52.0610163Z   "name": "Session 2"
+2026-02-05T16:57:52.0610466Z }
+2026-02-05T16:57:52.0610763Z 
+2026-02-05T16:57:52.0611529Z [90mstdout[2m | src/services/__tests__/SessionManager.test.ts[2m > [22m[2mSessionManager[2m > [22m[2mSession Stats[2m > [22m[2mshould return correct stats
+2026-02-05T16:57:52.0612364Z [22m[39m[2026-02-05T16:57:52.059Z] [INFO] Session archived {
+2026-02-05T16:57:52.0612727Z   "sessionId": "1770310672059-36d69fc13bfcf923"
+2026-02-05T16:57:52.0612970Z }
+2026-02-05T16:57:52.0613070Z 
+2026-02-05T16:57:52.0676264Z  [32m✓[39m src/services/__tests__/SessionManager.test.ts [2m([22m[2m36 tests[22m[2m)[22m[32m 57[2mms[22m[39m
+2026-02-05T16:57:52.2551222Z [90mstdout[2m | src/__tests__/PromptRefinerService.test.ts[2m > [22m[2mPromptRefinerService with DI[2m > [22m[2mService Creation[2m > [22m[2mshould create service with injected dependencies
+2026-02-05T16:57:52.2554200Z [22m[39m[2026-02-05T16:57:52.252Z] [INFO] Cache cleared
+2026-02-05T16:57:52.2558090Z 
+2026-02-05T16:57:52.2569317Z [90mstdout[2m | src/__tests__/PromptRefinerService.test.ts[2m > [22m[2mPromptRefinerService with DI[2m > [22m[2mService Creation[2m > [22m[2mshould use singleton pattern for getInstance
+2026-02-05T16:57:52.2572008Z [22m[39m[2026-02-05T16:57:52.256Z] [INFO] Cache cleared
+2026-02-05T16:57:52.2573343Z 
+2026-02-05T16:57:52.2582525Z [90mstdout[2m | src/__tests__/PromptRefinerService.test.ts[2m > [22m[2mPromptRefinerService with DI[2m > [22m[2mService Creation[2m > [22m[2mshould create separate instances with createWithDependencies
+2026-02-05T16:57:52.2585453Z [22m[39m[2026-02-05T16:57:52.257Z] [INFO] Cache cleared
+2026-02-05T16:57:52.2586044Z 
+2026-02-05T16:57:52.2603081Z [90mstdout[2m | src/__tests__/PromptRefinerService.test.ts[2m > [22m[2mPromptRefinerService with DI[2m > [22m[2mrefine[2m > [22m[2mshould call provider refine with correct parameters
+2026-02-05T16:57:52.2614938Z [22m[39m[2026-02-05T16:57:52.259Z] [INFO] Cache cleared
+2026-02-05T16:57:52.2618160Z 
+2026-02-05T16:57:52.2668753Z [90mstdout[2m | src/__tests__/PromptRefinerService.test.ts[2m > [22m[2mPromptRefinerService with DI[2m > [22m[2mrefine[2m > [22m[2mshould use strict template when strict mode is enabled
+2026-02-05T16:57:52.2669989Z [22m[39m[2026-02-05T16:57:52.265Z] [INFO] Cache cleared
+2026-02-05T16:57:52.2670229Z 
+2026-02-05T16:57:52.2683919Z [90mstdout[2m | src/__tests__/PromptRefinerService.test.ts[2m > [22m[2mPromptRefinerService with DI[2m > [22m[2mrefine[2m > [22m[2mshould return refined result with metadata
+2026-02-05T16:57:52.2685862Z [22m[39m[2026-02-05T16:57:52.267Z] [INFO] Cache cleared
+2026-02-05T16:57:52.2686274Z 
+2026-02-05T16:57:52.2696866Z [90mstdout[2m | src/__tests__/PromptRefinerService.test.ts[2m > [22m[2mPromptRefinerService with DI[2m > [22m[2mrefine[2m > [22m[2mshould propagate provider errors
+2026-02-05T16:57:52.2698522Z [22m[39m[2026-02-05T16:57:52.269Z] [INFO] Cache cleared
+2026-02-05T16:57:52.2698932Z 
+2026-02-05T16:57:52.2755149Z [90mstdout[2m | src/__tests__/PromptRefinerService.test.ts[2m > [22m[2mPromptRefinerService with DI[2m > [22m[2mrefine[2m > [22m[2mshould handle template loading errors
+2026-02-05T16:57:52.2756906Z [22m[39m[2026-02-05T16:57:52.274Z] [INFO] Cache cleared
+2026-02-05T16:57:52.2757340Z 
+2026-02-05T16:57:52.2768073Z [90mstdout[2m | src/__tests__/PromptRefinerService.test.ts[2m > [22m[2mPromptRefinerService with DI[2m > [22m[2mrefine[2m > [22m[2mshould fallback to src path if dist path fails
+2026-02-05T16:57:52.2769818Z [22m[39m[2026-02-05T16:57:52.275Z] [INFO] Cache cleared
+2026-02-05T16:57:52.2770242Z 
+2026-02-05T16:57:52.2806672Z [90mstdout[2m | src/__tests__/PromptRefinerService.test.ts[2m > [22m[2mPromptRefinerService with DI[2m > [22m[2mError Handling[2m > [22m[2mshould throw error if service not initialized
+2026-02-05T16:57:52.2809919Z [22m[39m[2026-02-05T16:57:52.280Z] [INFO] Cache cleared
+2026-02-05T16:57:52.2810332Z 
+2026-02-05T16:57:52.2815352Z [90mstdout[2m | src/__tests__/PromptRefinerService.test.ts[2m > [22m[2mPromptRefinerService with DI[2m > [22m[2mError Handling[2m > [22m[2mshould handle provider manager errors gracefully
+2026-02-05T16:57:52.2816658Z [22m[39m[2026-02-05T16:57:52.280Z] [INFO] Cache cleared
+2026-02-05T16:57:52.2817014Z 
+2026-02-05T16:57:52.2831239Z [90mstdout[2m | src/__tests__/PromptRefinerService.test.ts[2m > [22m[2mPromptRefinerService with DI[2m > [22m[2mCaching[2m > [22m[2mshould cache results for identical prompts
+2026-02-05T16:57:52.2832186Z [22m[39m[2026-02-05T16:57:52.282Z] [INFO] Cache cleared
+2026-02-05T16:57:52.2832410Z 
+2026-02-05T16:57:52.2877050Z  [31m❯[39m src/__tests__/PromptRefinerService.test.ts [2m([22m[2m12 tests[22m[2m | [22m[31m7 failed[39m[2m)[22m[32m 33[2mms[22m[39m
+2026-02-05T16:57:52.2878722Z        [32m✓[39m should create service with injected dependencies[32m 4[2mms[22m[39m
+2026-02-05T16:57:52.2879905Z        [32m✓[39m should use singleton pattern for getInstance[32m 1[2mms[22m[39m
+2026-02-05T16:57:52.2880647Z        [32m✓[39m should create separate instances with createWithDependencies[32m 2[2mms[22m[39m
+2026-02-05T16:57:52.2881483Z [31m       [31m×[31m should call provider refine with correct parameters[39m[32m 6[2mms[22m[39m
+2026-02-05T16:57:52.2882725Z [31m       [31m×[31m should use strict template when strict mode is enabled[39m[32m 2[2mms[22m[39m
+2026-02-05T16:57:52.2884161Z [31m       [31m×[31m should return refined result with metadata[39m[32m 1[2mms[22m[39m
+2026-02-05T16:57:52.2885635Z [31m       [31m×[31m should propagate provider errors[39m[32m 6[2mms[22m[39m
+2026-02-05T16:57:52.2886684Z        [32m✓[39m should handle template loading errors[32m 1[2mms[22m[39m
+2026-02-05T16:57:52.2888007Z [31m       [31m×[31m should fallback to src path if dist path fails[39m[32m 1[2mms[22m[39m
+2026-02-05T16:57:52.2889283Z        [32m✓[39m should throw error if service not initialized[32m 3[2mms[22m[39m
+2026-02-05T16:57:52.2890660Z [31m       [31m×[31m should handle provider manager errors gracefully[39m[32m 2[2mms[22m[39m
+2026-02-05T16:57:52.2892128Z [31m       [31m×[31m should cache results for identical prompts[39m[32m 1[2mms[22m[39m
+2026-02-05T16:57:52.2909001Z 
+2026-02-05T16:57:52.2910676Z [31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 7 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+2026-02-05T16:57:52.2911577Z 
+2026-02-05T16:57:52.2914907Z [41m[1m FAIL [22m[49m src/__tests__/PromptRefinerService.test.ts[2m > [22mPromptRefinerService with DI[2m > [22mrefine[2m > [22mshould call provider refine with correct parameters
+2026-02-05T16:57:52.2921174Z [31m[1mTypeError[22m: config.getUseRoleTemplates is not a function[39m
+2026-02-05T16:57:52.2924838Z [36m [2m❯[22m PromptRefinerService.loadTemplate src/services/PromptRefinerService.ts:[2m282:41[22m[39m
+2026-02-05T16:57:52.2976019Z     [90m280| [39m        [90m// Check if we should use role-specific templates[39m
+2026-02-05T16:57:52.2976964Z     [90m281| [39m        [35mconst[39m config [33m=[39m [33mConfigurationManager[39m[33m.[39m[34mgetInstance[39m()[33m;[39m
+2026-02-05T16:57:52.2978145Z     [90m282| [39m        [35mconst[39m useRoleTemplates [33m=[39m config[33m.[39m[34mgetUseRoleTemplates[39m()[33m;[39m
+2026-02-05T16:57:52.2979350Z     [90m   | [39m                                        [31m^[39m
+2026-02-05T16:57:52.2979924Z     [90m283| [39m        
+2026-02-05T16:57:52.2980873Z     [90m284| [39m        [35mif[39m (useRoleTemplates [33m&&[39m roleId [33m&&[39m roleId [33m!==[39m [32m'default'[39m) {
+2026-02-05T16:57:52.2981817Z [90m [2m❯[22m PromptRefinerService.refine src/services/PromptRefinerService.ts:[2m138:37[22m[39m
+2026-02-05T16:57:52.2982578Z [90m [2m❯[22m src/__tests__/PromptRefinerService.test.ts:[2m111:22[22m[39m
+2026-02-05T16:57:52.2982947Z 
+2026-02-05T16:57:52.2983360Z [31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯[22m[39m
+2026-02-05T16:57:52.2983702Z 
+2026-02-05T16:57:52.2985446Z [41m[1m FAIL [22m[49m src/__tests__/PromptRefinerService.test.ts[2m > [22mPromptRefinerService with DI[2m > [22mrefine[2m > [22mshould use strict template when strict mode is enabled
+2026-02-05T16:57:52.2987606Z [31m[1mTypeError[22m: config.getUseRoleTemplates is not a function[39m
+2026-02-05T16:57:52.2988931Z [36m [2m❯[22m PromptRefinerService.loadTemplate src/services/PromptRefinerService.ts:[2m282:41[22m[39m
+2026-02-05T16:57:52.2989891Z     [90m280| [39m        [90m// Check if we should use role-specific templates[39m
+2026-02-05T16:57:52.2991304Z     [90m281| [39m        [35mconst[39m config [33m=[39m [33mConfigurationManager[39m[33m.[39m[34mgetInstance[39m()[33m;[39m
+2026-02-05T16:57:52.2992949Z     [90m282| [39m        [35mconst[39m useRoleTemplates [33m=[39m config[33m.[39m[34mgetUseRoleTemplates[39m()[33m;[39m
+2026-02-05T16:57:52.2994017Z     [90m   | [39m                                        [31m^[39m
+2026-02-05T16:57:52.2994391Z     [90m283| [39m        
+2026-02-05T16:57:52.2995267Z     [90m284| [39m        [35mif[39m (useRoleTemplates [33m&&[39m roleId [33m&&[39m roleId [33m!==[39m [32m'default'[39m) {
+2026-02-05T16:57:52.2996208Z [90m [2m❯[22m PromptRefinerService.refine src/services/PromptRefinerService.ts:[2m138:37[22m[39m
+2026-02-05T16:57:52.2996936Z [90m [2m❯[22m src/__tests__/PromptRefinerService.test.ts:[2m132:7[22m[39m
+2026-02-05T16:57:52.2997563Z 
+2026-02-05T16:57:52.2998025Z [31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯[22m[39m
+2026-02-05T16:57:52.2998412Z 
+2026-02-05T16:57:52.3000024Z [41m[1m FAIL [22m[49m src/__tests__/PromptRefinerService.test.ts[2m > [22mPromptRefinerService with DI[2m > [22mrefine[2m > [22mshould return refined result with metadata
+2026-02-05T16:57:52.3001911Z [31m[1mTypeError[22m: config.getUseRoleTemplates is not a function[39m
+2026-02-05T16:57:52.3003165Z [36m [2m❯[22m PromptRefinerService.loadTemplate src/services/PromptRefinerService.ts:[2m282:41[22m[39m
+2026-02-05T16:57:52.3003904Z     [90m280| [39m        [90m// Check if we should use role-specific templates[39m
+2026-02-05T16:57:52.3005060Z     [90m281| [39m        [35mconst[39m config [33m=[39m [33mConfigurationManager[39m[33m.[39m[34mgetInstance[39m()[33m;[39m
+2026-02-05T16:57:52.3006796Z     [90m282| [39m        [35mconst[39m useRoleTemplates [33m=[39m config[33m.[39m[34mgetUseRoleTemplates[39m()[33m;[39m
+2026-02-05T16:57:52.3007475Z     [90m   | [39m                                        [31m^[39m
+2026-02-05T16:57:52.3007799Z     [90m283| [39m        
+2026-02-05T16:57:52.3008398Z     [90m284| [39m        [35mif[39m (useRoleTemplates [33m&&[39m roleId [33m&&[39m roleId [33m!==[39m [32m'default'[39m) {
+2026-02-05T16:57:52.3009288Z [90m [2m❯[22m PromptRefinerService.refine src/services/PromptRefinerService.ts:[2m138:37[22m[39m
+2026-02-05T16:57:52.3010003Z [90m [2m❯[22m src/__tests__/PromptRefinerService.test.ts:[2m144:22[22m[39m
+2026-02-05T16:57:52.3010304Z 
+2026-02-05T16:57:52.3010526Z [31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯[22m[39m
+2026-02-05T16:57:52.3010724Z 
+2026-02-05T16:57:52.3011480Z [41m[1m FAIL [22m[49m src/__tests__/PromptRefinerService.test.ts[2m > [22mPromptRefinerService with DI[2m > [22mrefine[2m > [22mshould propagate provider errors
+2026-02-05T16:57:52.3012762Z [31m[1mAssertionError[22m: expected [Function] to throw error including 'Provider error' but got 'config.getUseRoleTemplates is not a f…'[39m
+2026-02-05T16:57:52.3013291Z 
+2026-02-05T16:57:52.3013467Z Expected: [32m"Provider error"[39m
+2026-02-05T16:57:52.3013930Z Received: [31m"config.getUseRoleTemplates is not a function"[39m
+2026-02-05T16:57:52.3014200Z 
+2026-02-05T16:57:52.3014728Z [36m [2m❯[22m src/__tests__/PromptRefinerService.test.ts:[2m154:7[22m[39m
+2026-02-05T16:57:52.3026324Z     [90m152| [39m      (mockProvider.refine as any).mockRejectedValue(new Error('Provid…
+2026-02-05T16:57:52.3027185Z     [90m153| [39m
+2026-02-05T16:57:52.3028072Z     [90m154| [39m      await expect(service.refine('user prompt')).rejects.toThrow('Pro…
+2026-02-05T16:57:52.3029263Z     [90m   | [39m      [31m^[39m
+2026-02-05T16:57:52.3029834Z     [90m155| [39m    })[33m;[39m
+2026-02-05T16:57:52.3030336Z     [90m156| [39m
+2026-02-05T16:57:52.3030607Z 
+2026-02-05T16:57:52.3031049Z [31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯[22m[39m
+2026-02-05T16:57:52.3031408Z 
+2026-02-05T16:57:52.3032999Z [41m[1m FAIL [22m[49m src/__tests__/PromptRefinerService.test.ts[2m > [22mPromptRefinerService with DI[2m > [22mrefine[2m > [22mshould fallback to src path if dist path fails
+2026-02-05T16:57:52.3036404Z [31m[1mTypeError[22m: config.getUseRoleTemplates is not a function[39m
+2026-02-05T16:57:52.3037874Z [36m [2m❯[22m PromptRefinerService.loadTemplate src/services/PromptRefinerService.ts:[2m282:41[22m[39m
+2026-02-05T16:57:52.3039147Z     [90m280| [39m        [90m// Check if we should use role-specific templates[39m
+2026-02-05T16:57:52.3040266Z     [90m281| [39m        [35mconst[39m config [33m=[39m [33mConfigurationManager[39m[33m.[39m[34mgetInstance[39m()[33m;[39m
+2026-02-05T16:57:52.3041227Z     [90m282| [39m        [35mconst[39m useRoleTemplates [33m=[39m config[33m.[39m[34mgetUseRoleTemplates[39m()[33m;[39m
+2026-02-05T16:57:52.3042283Z     [90m   | [39m                                        [31m^[39m
+2026-02-05T16:57:52.3042827Z     [90m283| [39m        
+2026-02-05T16:57:52.3043781Z     [90m284| [39m        [35mif[39m (useRoleTemplates [33m&&[39m roleId [33m&&[39m roleId [33m!==[39m [32m'default'[39m) {
+2026-02-05T16:57:52.3044919Z [90m [2m❯[22m PromptRefinerService.refine src/services/PromptRefinerService.ts:[2m138:37[22m[39m
+2026-02-05T16:57:52.3045941Z [90m [2m❯[22m src/__tests__/PromptRefinerService.test.ts:[2m175:7[22m[39m
+2026-02-05T16:57:52.3046441Z 
+2026-02-05T16:57:52.3046713Z [31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/7]⎯[22m[39m
+2026-02-05T16:57:52.3046908Z 
+2026-02-05T16:57:52.3047789Z [41m[1m FAIL [22m[49m src/__tests__/PromptRefinerService.test.ts[2m > [22mPromptRefinerService with DI[2m > [22mError Handling[2m > [22mshould handle provider manager errors gracefully
+2026-02-05T16:57:52.3049857Z [31m[1mAssertionError[22m: expected [Function] to throw error including 'Provider manager error' but got 'config.getUseRoleTemplates is not a f…'[39m
+2026-02-05T16:57:52.3050861Z 
+2026-02-05T16:57:52.3051224Z Expected: [32m"Provider manager error"[39m
+2026-02-05T16:57:52.3051789Z Received: [31m"config.getUseRoleTemplates is not a function"[39m
+2026-02-05T16:57:52.3052051Z 
+2026-02-05T16:57:52.3052382Z [36m [2m❯[22m src/__tests__/PromptRefinerService.test.ts:[2m211:7[22m[39m
+2026-02-05T16:57:52.3053477Z     [90m209| [39m      vi[33m.[39m[34mmocked[39m(fs[33m.[39mreadFileSync)[33m.[39m[34mmockReturnValue[39m([32m'template'[39m)[33m;[39m
+2026-02-05T16:57:52.3054357Z     [90m210| [39m
+2026-02-05T16:57:52.3054919Z     [90m211| [39m      await expect(service.refine('user prompt')).rejects.toThrow('Pro…
+2026-02-05T16:57:52.3055423Z     [90m   | [39m      [31m^[39m
+2026-02-05T16:57:52.3055712Z     [90m212| [39m    })[33m;[39m
+2026-02-05T16:57:52.3055979Z     [90m213| [39m  })[33m;[39m
+2026-02-05T16:57:52.3056129Z 
+2026-02-05T16:57:52.3056366Z [31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/7]⎯[22m[39m
+2026-02-05T16:57:52.3056554Z 
+2026-02-05T16:57:52.3057363Z [41m[1m FAIL [22m[49m src/__tests__/PromptRefinerService.test.ts[2m > [22mPromptRefinerService with DI[2m > [22mCaching[2m > [22mshould cache results for identical prompts
+2026-02-05T16:57:52.3058293Z [31m[1mTypeError[22m: config.getUseRoleTemplates is not a function[39m
+2026-02-05T16:57:52.3059064Z [36m [2m❯[22m PromptRefinerService.loadTemplate src/services/PromptRefinerService.ts:[2m282:41[22m[39m
+2026-02-05T16:57:52.3059762Z     [90m280| [39m        [90m// Check if we should use role-specific templates[39m
+2026-02-05T16:57:52.3060543Z     [90m281| [39m        [35mconst[39m config [33m=[39m [33mConfigurationManager[39m[33m.[39m[34mgetInstance[39m()[33m;[39m
+2026-02-05T16:57:52.3061610Z     [90m282| [39m        [35mconst[39m useRoleTemplates [33m=[39m config[33m.[39m[34mgetUseRoleTemplates[39m()[33m;[39m
+2026-02-05T16:57:52.3062238Z     [90m   | [39m                                        [31m^[39m
+2026-02-05T16:57:52.3062559Z     [90m283| [39m        
+2026-02-05T16:57:52.3063155Z     [90m284| [39m        [35mif[39m (useRoleTemplates [33m&&[39m roleId [33m&&[39m roleId [33m!==[39m [32m'default'[39m) {
+2026-02-05T16:57:52.3064025Z [90m [2m❯[22m PromptRefinerService.refine src/services/PromptRefinerService.ts:[2m138:37[22m[39m
+2026-02-05T16:57:52.3064865Z [90m [2m❯[22m src/__tests__/PromptRefinerService.test.ts:[2m221:7[22m[39m
+2026-02-05T16:57:52.3065169Z 
+2026-02-05T16:57:52.3065387Z [31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/7]⎯[22m[39m
+2026-02-05T16:57:52.3065579Z 
+2026-02-05T16:57:52.3065594Z 
+2026-02-05T16:57:52.3066010Z [2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m2 passed[39m[22m[90m (3)[39m
+2026-02-05T16:57:52.3066738Z [2m      Tests [22m [1m[31m7 failed[39m[22m[2m | [22m[1m[32m56 passed[39m[22m[90m (63)[39m
+2026-02-05T16:57:52.3067201Z [2m   Start at [22m 16:57:51
+2026-02-05T16:57:52.3067840Z [2m   Duration [22m 694ms[2m (transform 527ms, setup 132ms, import 686ms, tests 108ms, environment 1ms)[22m
+2026-02-05T16:57:52.3068226Z 
+2026-02-05T16:57:52.3069491Z 
+2026-02-05T16:57:52.3092945Z ##[error]TypeError: config.getUseRoleTemplates is not a function
+ ❯ PromptRefinerService.loadTemplate src/services/PromptRefinerService.ts:282:41
+ ❯ PromptRefinerService.refine src/services/PromptRefinerService.ts:138:37
+ ❯ src/__tests__/PromptRefinerService.test.ts:111:22
+
+
+2026-02-05T16:57:52.3100885Z 
+2026-02-05T16:57:52.3103839Z ##[error]TypeError: config.getUseRoleTemplates is not a function
+ ❯ PromptRefinerService.loadTemplate src/services/PromptRefinerService.ts:282:41
+ ❯ PromptRefinerService.refine src/services/PromptRefinerService.ts:138:37
+ ❯ src/__tests__/PromptRefinerService.test.ts:132:7
+
+
+2026-02-05T16:57:52.3105617Z 
+2026-02-05T16:57:52.3108259Z ##[error]TypeError: config.getUseRoleTemplates is not a function
+ ❯ PromptRefinerService.loadTemplate src/services/PromptRefinerService.ts:282:41
+ ❯ PromptRefinerService.refine src/services/PromptRefinerService.ts:138:37
+ ❯ src/__tests__/PromptRefinerService.test.ts:144:22
+
+
+2026-02-05T16:57:52.3109716Z 
+2026-02-05T16:57:52.3112219Z ##[error]AssertionError: expected [Function] to throw error including 'Provider error' but got 'config.getUseRoleTemplates is not a f…'
+
+Expected: "Provider error"
+Received: "config.getUseRoleTemplates is not a function"
+
+ ❯ src/__tests__/PromptRefinerService.test.ts:154:7
+
+
+2026-02-05T16:57:52.3113643Z 
+2026-02-05T16:57:52.3116146Z ##[error]TypeError: config.getUseRoleTemplates is not a function
+ ❯ PromptRefinerService.loadTemplate src/services/PromptRefinerService.ts:282:41
+ ❯ PromptRefinerService.refine src/services/PromptRefinerService.ts:138:37
+ ❯ src/__tests__/PromptRefinerService.test.ts:175:7
+
+
+2026-02-05T16:57:52.3117824Z 
+2026-02-05T16:57:52.3120513Z ##[error]AssertionError: expected [Function] to throw error including 'Provider manager error' but got 'config.getUseRoleTemplates is not a f…'
+
+Expected: "Provider manager error"
+Received: "config.getUseRoleTemplates is not a function"
+
+ ❯ src/__tests__/PromptRefinerService.test.ts:211:7
+
+
+2026-02-05T16:57:52.3122129Z 
+2026-02-05T16:57:52.3125649Z ##[error]TypeError: config.getUseRoleTemplates is not a function
+ ❯ PromptRefinerService.loadTemplate src/services/PromptRefinerService.ts:282:41
+ ❯ PromptRefinerService.refine src/services/PromptRefinerService.ts:138:37
+ ❯ src/__tests__/PromptRefinerService.test.ts:221:7
+
+
+2026-02-05T16:57:52.3401003Z ##[error]Process completed with exit code 1.
+2026-02-05T16:57:52.3512254Z Post job cleanup.
+2026-02-05T16:57:52.4447956Z [command]/usr/bin/git version
+2026-02-05T16:57:52.4483155Z git version 2.52.0
+2026-02-05T16:57:52.4524490Z Temporarily overriding HOME='/home/runner/work/_temp/03b54e4e-4032-4b1d-9637-c356c7d897d9' before making global git config changes
+2026-02-05T16:57:52.4525866Z Adding repository directory to the temporary git global config as a safe directory
+2026-02-05T16:57:52.4537733Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/AI-Prompt-Refiner/AI-Prompt-Refiner
+2026-02-05T16:57:52.4570363Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-02-05T16:57:52.4602112Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-02-05T16:57:52.4828103Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-02-05T16:57:52.4848064Z http.https://github.com/.extraheader
+2026-02-05T16:57:52.4860010Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-02-05T16:57:52.4891273Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-02-05T16:57:52.5111631Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-02-05T16:57:52.5147339Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-02-05T16:57:52.5496868Z Cleaning up orphan processes

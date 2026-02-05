@@ -38,6 +38,7 @@ describe('PromptRefinerService with DI', () => {
       getProviderId: vi.fn().mockReturnValue('mock'),
       getModelId: vi.fn().mockReturnValue('gpt-4o-mini'),
       getOllamaEndpoint: vi.fn().mockReturnValue('http://localhost:11434'),
+      getUseRoleTemplates: vi.fn().mockReturnValue(true),
     });
     
     // Create mock provider
