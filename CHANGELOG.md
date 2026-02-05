@@ -20,12 +20,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Different roles refine the same prompt differently based on their expertise
   - Default role is "Programmer" for backward compatibility with existing sessions
 
+- **Role-Specific Templates**
+  - Each role now has its own optimized prompt template
+  - Templates are tailored to the specific needs of each role:
+    - 💻 **Programmer**: Focus on technical constraints, code structure, performance considerations
+    - ✍️ **Writer**: Emphasis on audience, tone, content format, and style guidelines
+    - 🔬 **Researcher**: Structured for research questions, sources, methodology, and scope
+    - 📊 **Analyst**: Optimized for metrics, data sources, constraints, and problem breakdown
+  - New setting `promptRefiner.useRoleTemplates` (default: true) to enable/disable role-specific templates
+  - Automatic fallback to generic templates if role-specific template is not found
+  - Graceful degradation: works even without role-specific templates
+
 ### Infrastructure
 
 - **Session Management**
   - Extended session metadata to include role information
   - Automatic migration of existing sessions to use default "programmer" role
   - Updated PromptRefinerService to combine role system prompts with templates
+
+- **Template Management**
+  - Extended copy-templates.js to support recursive directory copying
+  - Templates organized in `src/templates/roles/` directory
+  - Added configuration option for role template usage
 
 ### Documentation
 
