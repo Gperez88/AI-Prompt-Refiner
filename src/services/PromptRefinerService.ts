@@ -12,6 +12,9 @@ import { OutputValidator, ValidationResult } from '../utils/OutputValidator';
 import { LRUCache, refinementCache } from '../utils/Cache';
 import { getCircuitBreaker, CircuitBreakerError } from '../utils/CircuitBreaker';
 import { withRetry } from '../utils/Retry';
+import { SessionManager } from './SessionManager';
+import { getRoleById, RoleId, DEFAULT_ROLE_ID } from '../types/Role';
+import { Analytics } from './Analytics';
 
 export interface RefinementOptions {
     templateId?: string;
@@ -125,8 +128,19 @@ export class PromptRefinerService implements IPromptRefinerService {
 
         logger.debug('Loading prompt template', { templateId });
 
-        // Load template
-        const systemTemplate = await this.loadTemplate(options?.templateId);
+        // Get role from active session first (needed for template selection)
+        const sessionManager = SessionManager.getInstance();
+        const activeSession = await sessionManager.getActiveSession();
+        const roleId = activeSession?.metadata?.role || DEFAULT_ROLE_ID;
+        const role = getRoleById(roleId);
+
+        // Load template (with role-specific template support)
+        const template = await this.loadTemplate(options?.templateId, roleId);
+        
+        // Combine role system prompt + template
+        const systemTemplate = role ? 
+            `${role.systemPrompt}\n\n${template}` : 
+            template;
 
         // Check cancellation before calling provider
         if (token?.isCancellationRequested) {
@@ -137,6 +151,7 @@ export class PromptRefinerService implements IPromptRefinerService {
             iteration: options?.iteration || 1,
             templateId,
             provider: providerId,
+            role: roleId,
         });
 
         const activeProvider = this.providerManager.getActiveProvider();
@@ -179,6 +194,10 @@ export class PromptRefinerService implements IPromptRefinerService {
                 score: validationResult?.score,
                 valid: validationResult?.valid 
             });
+
+            // Track analytics
+            const roleInfo = getRoleById(roleId);
+            Analytics.getInstance().trackRefinement(roleId, roleInfo?.name || 'Programmer');
 
             return {
                 refined,
@@ -246,9 +265,11 @@ Please refine the prompt again incorporating the feedback above.`;
 
     /**
      * Load template content
+     * @param templateId Optional template ID
+     * @param roleId Optional role ID to load role-specific template
      */
-    private async loadTemplate(templateId?: string): Promise<string> {
-        // If specific template requested
+    private async loadTemplate(templateId?: string, roleId?: string): Promise<string> {
+        // If specific template requested (not default/strict)
         if (templateId && templateId !== 'default' && templateId !== 'strict') {
             const template = await this.templateManager.getTemplate(templateId);
             if (template && template.content) {
@@ -256,8 +277,28 @@ Please refine the prompt again incorporating the feedback above.`;
             }
         }
 
+        // Check if we should use role-specific templates
+        const config = ConfigurationManager.getInstance();
+        const useRoleTemplates = config.getUseRoleTemplates();
+        
+        if (useRoleTemplates && roleId && roleId !== 'default') {
+            // Try to load role-specific template first
+            const roleTemplatePath = this.context!.asAbsolutePath(
+                path.join('dist', 'templates', 'roles', `${roleId}.md`)
+            );
+            
+            try {
+                const roleTemplate = fs.readFileSync(roleTemplatePath, 'utf-8');
+                logger.debug('Loaded role-specific template', { roleId });
+                return roleTemplate;
+            } catch (error) {
+                // Role-specific template not found, fall back to default
+                logger.debug('Role-specific template not found, using default', { roleId });
+            }
+        }
+
         // Load from file system (default or strict)
-        const isStrict = ConfigurationManager.getInstance().isStrictMode();
+        const isStrict = config.isStrictMode();
         const templateName = isStrict ? 'prompt_template_strict.md' : 'prompt_template.md';
         const templatePath = this.context!.asAbsolutePath(path.join('dist', 'templates', templateName));
 

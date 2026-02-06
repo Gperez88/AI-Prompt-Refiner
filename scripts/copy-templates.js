@@ -4,15 +4,33 @@ const path = require('path');
 const srcDir = path.join(__dirname, '../src/templates');
 const destDir = path.join(__dirname, '../dist/templates');
 
+// Ensure destination directory exists
 if (!fs.existsSync(destDir)) {
     fs.mkdirSync(destDir, { recursive: true });
 }
 
-fs.readdirSync(srcDir).forEach(file => {
-    if (path.extname(file) === '.md') {
-        const srcPath = path.join(srcDir, file);
-        const destPath = path.join(destDir, file);
-        fs.copyFileSync(srcPath, destPath);
-        console.log(`Copied ${file} to dist/templates/`);
+// Copy files recursively
+function copyRecursive(src, dest) {
+    const stats = fs.statSync(src);
+    
+    if (stats.isDirectory()) {
+        // Create destination directory if it doesn't exist
+        if (!fs.existsSync(dest)) {
+            fs.mkdirSync(dest, { recursive: true });
+        }
+        
+        // Process directory contents
+        fs.readdirSync(src).forEach(file => {
+            const srcPath = path.join(src, file);
+            const destPath = path.join(dest, file);
+            copyRecursive(srcPath, destPath);
+        });
+    } else if (path.extname(src) === '.md') {
+        // Copy .md files
+        fs.copyFileSync(src, dest);
+        const relativePath = path.relative(destDir, dest);
+        console.log(`Copied ${relativePath} to dist/templates/`);
     }
-});
+}
+
+copyRecursive(srcDir, destDir);

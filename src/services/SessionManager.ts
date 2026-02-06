@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { randomBytes } from 'crypto';
 import { logger } from './Logger';
+import { RoleId, DEFAULT_ROLE_ID, isValidRoleId } from '../types/Role';
 
 /**
  * Represents a single message in a chat session
@@ -24,6 +25,11 @@ export interface SessionMetadata {
     model?: string;
     tags?: string[];
     isArchived?: boolean;
+    /**
+     * The role/persona for this session
+     * @default 'programmer'
+     */
+    role?: RoleId;
 }
 
 /**
@@ -111,10 +117,12 @@ export class SessionManager {
             
             if (savedStorage) {
                 this.storage = savedStorage;
-                logger.info('SessionManager initialized', { 
+                logger.info('SessionManager initialized', {
                     sessionCount: this.storage.sessions.length,
-                    activeSession: this.storage.activeSessionId 
+                    activeSession: this.storage.activeSessionId
                 });
+                // Migrate session roles for existing sessions
+                await this.migrateSessionRoles();
             } else {
                 // No existing storage, check for legacy data
                 await this.migrateFromLegacy();
@@ -163,9 +171,10 @@ export class SessionManager {
     /**
      * Create a new chat session
      * @param name Optional session name (auto-generated if not provided)
+     * @param role Optional role/persona for the session (defaults to programmer)
      * @returns The created session
      */
-    public async createSession(name?: string): Promise<ChatSession> {
+    public async createSession(name?: string, role?: RoleId): Promise<ChatSession> {
         if (!this.context) {
             throw new Error('SessionManager not initialized');
         }
@@ -179,6 +188,9 @@ export class SessionManager {
         const now = Date.now();
         const sessionName = name || `Session ${this.storage.sessions.length + 1}`;
 
+        // Validate and default role
+        const sessionRole = role && isValidRoleId(role) ? role : DEFAULT_ROLE_ID;
+
         const newSession: ChatSession = {
             id: this.generateId(),
             name: sessionName,
@@ -188,6 +200,7 @@ export class SessionManager {
             isActive: true,
             metadata: {
                 messageCount: 0,
+                role: sessionRole,
             },
         };
 
@@ -798,5 +811,60 @@ export class SessionManager {
             archivedSessions,
             totalMessages,
         };
+    }
+
+    // ==================== ROLE MANAGEMENT ====================
+
+    /**
+     * Get the role of a session
+     * @param sessionId The session ID
+     * @returns The role ID (defaults to 'programmer' if not set)
+     */
+    public getSessionRole(sessionId: string): RoleId {
+        const session = this.getSessionById(sessionId);
+        if (!session) {
+            throw new Error(`Session not found: ${sessionId}`);
+        }
+        return session.metadata.role || DEFAULT_ROLE_ID;
+    }
+
+    /**
+     * Update the role of a session
+     * @param sessionId The session ID
+     * @param role The new role ID
+     */
+    public async updateSessionRole(sessionId: string, role: RoleId): Promise<void> {
+        const session = this.getSessionById(sessionId);
+        if (!session) {
+            throw new Error(`Session not found: ${sessionId}`);
+        }
+
+        if (!isValidRoleId(role)) {
+            throw new Error(`Invalid role: ${role}`);
+        }
+
+        session.metadata.role = role;
+        session.updatedAt = Date.now();
+        await this.persist();
+
+        logger.info('Session role updated', { sessionId, role });
+    }
+
+    /**
+     * Ensure all sessions have a role (migration helper)
+     * Called during initialization to migrate existing sessions
+     */
+    private async migrateSessionRoles(): Promise<void> {
+        let migrated = false;
+        for (const session of this.storage.sessions) {
+            if (!session.metadata.role) {
+                session.metadata.role = DEFAULT_ROLE_ID;
+                migrated = true;
+            }
+        }
+        if (migrated) {
+            await this.persist();
+            logger.info('Migrated session roles to default', { count: this.storage.sessions.length });
+        }
     }
 }

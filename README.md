@@ -57,6 +57,7 @@
 ### Method 3: Templates
 
 Choose from smart templates based on your task:
+
 - 💻 **Code** - Programming and development
 - 📝 **Writing** - Documentation and content
 - 📊 **Analysis** - Data and research tasks
@@ -68,16 +69,19 @@ Choose from smart templates based on your task:
 ## 💡 Why Use It?
 
 ### Save Time
+
 - ⏱️ **10 seconds** to refine vs **10 minutes** rewriting manually
 - 🎯 Get better results on the **first try**
 - 🧠 Stop guessing what the AI needs
 
 ### Better Results
+
 - 📋 Structured format that AI understands
 - 🎨 Consistent quality across all prompts
 - 🚀 More productive conversations with AI
 
 ### Multi-Session Chat
+
 - 💬 Create separate sessions for different tasks
 - 🔄 Switch between conversations seamlessly
 - 💾 Never lose your chat history
@@ -100,11 +104,13 @@ Choose from smart templates based on your task:
 ## 🎨 Key Features
 
 ### 💬 AI-Powered Refinement
+
 - Works with **6 AI providers** (GitHub, OpenAI, Gemini, Groq, HuggingFace, Ollama)
 - Local AI support for privacy with Ollama
 - Premium providers for best results
 
 ### 💾 Smart Multi-Session History
+
 - Create and manage multiple chat sessions
 - Never lose your best prompts
 - Search through previous refinements
@@ -112,16 +118,34 @@ Choose from smart templates based on your task:
 - Archive old sessions
 
 ### 🎭 Templates
-- **Code:** Optimized for programming
-- **Writing:** For documentation
-- **Analysis:** For data tasks
-- **Strict:** No fluff, just results
 
-### 🎨 Beautiful UI
-- Built-in chat interface with session management
-- Session selector with recent sessions
-- Dark & light themes
-- i18n support (English/Spanish)
+Choose from smart templates based on your task:
+
+- 💻 **Code** - Programming and development
+- 📝 **Writing** - Documentation and content
+- 📊 **Analysis** - Data and research tasks
+- ⚡ **Strict** - No conversational filler
+- 🎨 **Custom** - Create your own
+
+### 🎨 Roles
+
+Each session can have a **role** that defines how the AI assistant approaches your prompts. When you create a new session, you'll choose a role that best fits your needs:
+
+| Role | Best For | Approach |
+|------|----------|----------|
+| 💻 **Programmer** | Coding tasks | Technical precision, best practices, edge cases |
+| ✍️ **Writer** | Content creation | Clarity, tone, structure, accessibility |
+| 🔬 **Researcher** | Analysis & investigation | Accuracy, evidence, multiple perspectives |
+| 📊 **Analyst** | Problem solving | Pattern recognition, data-driven insights |
+
+**How it works:** The role adds a "personality" to your session. The same prompt will be refined differently depending on the role:
+
+- A **Programmer** will add code examples and technical considerations
+- A **Writer** will focus on clarity and audience
+- A **Researcher** will emphasize sources and accuracy
+- An **Analyst** will break down problems into components
+
+*Tip: Create different sessions with different roles for different types of work!*
 
 ---
 
@@ -130,11 +154,13 @@ Choose from smart templates based on your task:
 ### For Developers 💻
 
 **Messy prompt:**
+
 ```
 fix this bug where the button doesn't work
 ```
 
 **Refined:**
+
 ```
 [Context]
 React login form, submit button
@@ -154,11 +180,13 @@ Working button with proper event handlers
 ### For Writers 📝
 
 **Messy prompt:**
+
 ```
 write about AI
 ```
 
 **Refined:**
+
 ```
 [Context]
 Technical blog, intermediate audience
@@ -181,11 +209,13 @@ Complete blog post with code examples
 ### For Researchers 🔬
 
 **Messy prompt:**
+
 ```
 analyze this data
 ```
 
 **Refined:**
+
 ```
 [Context]
 Q1-Q4 2024 sales data, CSV format
@@ -209,6 +239,7 @@ Analysis report with charts and recommendations
 ## 🔧 Configuration
 
 Click the **⚡ icon** in your status bar to:
+
 - Choose AI provider
 - Select different models
 - Add API keys (required for all providers except Ollama)
@@ -248,10 +279,11 @@ Click the **⚡ icon** in your status bar to:
 ## ⭐ Pro Tips
 
 1. **Multi-Session Workflow** - Create separate sessions for different projects or topics
-2. **Save Sessions** - Export important sessions as JSON files
-3. **Use Templates** - Match the template to your task type for best results
-4. **History** - All your prompts are saved automatically - search and reuse!
-5. **Clear Sessions** - Archive or delete old sessions to keep your workspace organized
+2. **Choose the Right Role** - Select a role that matches your task (Programmer for code, Writer for content, etc.)
+3. **Save Sessions** - Export important sessions as JSON files
+4. **Use Templates** - Match the template to your task type for best results
+5. **History** - All your prompts are saved automatically - search and reuse!
+6. **Clear Sessions** - Archive or delete old sessions to keep your workspace organized
 
 ---
 

@@ -4,6 +4,8 @@ import { logger } from '../services/Logger';
 import { ErrorHandler, RateLimiter, InputValidator } from '../utils/ErrorHandler';
 import { SessionManager } from '../services/SessionManager';
 import { ConfigurationManager } from '../services/ConfigurationManager';
+import { RoleId, isValidRoleId, getRoleById, PREDEFINED_ROLES } from '../types/Role';
+import { Analytics } from '../services/Analytics';
 
 /**
  * Message types for webview communication
@@ -17,7 +19,9 @@ type WebviewMessage =
   | { type: 'searchMessages'; query: string }
   | { type: 'startEditing'; messageId: string }
   | { type: 'cancelEditing' }
-  | { type: 'createSession'; name?: string }
+  | { type: 'createSession'; name?: string; role?: string }
+  | { type: 'requestSessionName' }
+  | { type: 'requestRoleSelection'; name?: string }
   | { type: 'switchSession'; sessionId: string }
   | { type: 'renameSession'; sessionId: string; newName: string }
   | { type: 'deleteSession'; sessionId: string }
@@ -107,7 +111,13 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
 
                     // Session management
                 case 'createSession':
-                    await this._handleCreateSession(data.name);
+                    await this._handleCreateSession(data.name, data.role);
+                    break;
+                case 'requestSessionName':
+                    await this._handleRequestSessionName();
+                    break;
+                case 'requestRoleSelection':
+                    await this._handleRequestRoleSelection(data.name);
                     break;
                 case 'switchSession':
                     await this._handleSwitchSession(data.sessionId);
@@ -371,10 +381,18 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     /**
    * Handle creating a new session
    */
-    private async _handleCreateSession(name?: string) {
-        const session = await this.sessionManager.createSession(name);
+    private async _handleCreateSession(name?: string, role?: string) {
+        // Validate role and cast to RoleId if valid
+        const validatedRole = role && isValidRoleId(role) ? role as RoleId : undefined;
+        const session = await this.sessionManager.createSession(name, validatedRole);
+        
+        // Track analytics
+        const roleId = validatedRole || 'programmer';
+        const roleInfo = getRoleById(roleId);
+        Analytics.getInstance().trackSessionCreated(roleId, roleInfo?.name || 'Programmer');
+        
         await this._notifySessionListChanged();
-    
+
         this._view?.webview.postMessage({
             type: 'sessionCreated',
             session
@@ -382,6 +400,46 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
 
         // Load the new session
         await this._loadSession(session.id);
+    }
+
+    /**
+   * Handle requesting session name from user (prompt doesn't work in sandboxed webview)
+   */
+    private async _handleRequestSessionName() {
+        const name = await vscode.window.showInputBox({
+            prompt: 'Session name (optional)',
+            placeHolder: 'Enter a name for the new session',
+            ignoreFocusOut: true
+        });
+        
+        // User cancelled - don't proceed
+        if (name === undefined) {
+            return;
+        }
+        
+        // Now request role selection
+        await this._handleRequestRoleSelection(name || undefined);
+    }
+
+    /**
+   * Handle requesting role selection from user
+   */
+    private async _handleRequestRoleSelection(name?: string) {
+        const roles = [
+            { label: '💻 Programmer', description: 'Software engineering focus', id: 'programmer' },
+            { label: '✍️ Writer', description: 'Professional writing focus', id: 'writer' },
+            { label: '🔬 Researcher', description: 'Research and analysis focus', id: 'researcher' },
+            { label: '📊 Analyst', description: 'Problem analysis focus', id: 'analyst' }
+        ];
+        
+        const selected = await vscode.window.showQuickPick(roles, {
+            placeHolder: 'Select a role for this session',
+            ignoreFocusOut: true
+        });
+        
+        // User cancelled or selected a role - create session
+        const roleId = selected?.id || 'programmer';
+        await this._handleCreateSession(name, roleId);
     }
 
     /**
@@ -590,20 +648,44 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
    */
     private async _loadInitialState() {
         const activeSession = await this.sessionManager.getActiveSession();
+        const config = ConfigurationManager.getInstance();
+        
+        // Get current template info
+        const isStrictMode = config.isStrictMode();
+        const templateName = isStrictMode ? 'Strict' : 'Normal';
     
         if (activeSession) {
-            // Send session info
+            // Get role info for active session
+            const roleId = activeSession.metadata?.role || 'programmer';
+            const role = getRoleById(roleId);
+            
+            // Send session info with role
             this._view?.webview.postMessage({
                 type: 'initialState',
-                session: activeSession,
-                hasSessions: true
+                session: {
+                    ...activeSession,
+                    roleInfo: role ? {
+                        id: role.id,
+                        name: role.name,
+                        icon: role.icon
+                    } : null
+                },
+                hasSessions: true,
+                templateInfo: {
+                    name: templateName,
+                    isStrict: isStrictMode
+                }
             });
         } else {
             // No sessions yet
             this._view?.webview.postMessage({
                 type: 'initialState',
                 session: null,
-                hasSessions: false
+                hasSessions: false,
+                templateInfo: {
+                    name: templateName,
+                    isStrict: isStrictMode
+                }
             });
         }
 
@@ -635,10 +717,24 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     private async _notifySessionListChanged() {
         const sessions = await this.sessionManager.getAllSessions({ includeArchived: true });
         const activeSession = await this.sessionManager.getActiveSession();
+        
+        // Enrich sessions with role information
+        const sessionsWithRoles = sessions.map(session => {
+            const roleId = session.metadata?.role || 'programmer';
+            const role = getRoleById(roleId);
+            return {
+                ...session,
+                roleInfo: role ? {
+                    id: role.id,
+                    name: role.name,
+                    icon: role.icon
+                } : null
+            };
+        });
     
         this._view?.webview.postMessage({
             type: 'sessionListChanged',
-            sessions,
+            sessions: sessionsWithRoles,
             activeSessionId: activeSession?.id || null
         });
     }
@@ -683,12 +779,33 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             background-color: var(--vscode-sideBar-background);
         }
 
+        .panel-title-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
         .panel-title {
             font-size: 11px;
             font-weight: 600;
             color: var(--vscode-foreground);
             text-transform: uppercase;
             letter-spacing: 0.5px;
+        }
+
+        .template-indicator {
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            background: var(--vscode-badge-background);
+            color: var(--vscode-badge-foreground);
+            font-weight: 500;
+            cursor: default;
+        }
+
+        .template-indicator.strict {
+            background: var(--vscode-errorBackground);
+            color: var(--vscode-errorForeground);
         }
 
         .panel-actions {
@@ -879,6 +996,17 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             font-weight: 500;
             font-size: 13px;
             color: var(--vscode-foreground);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .role-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            opacity: 0.8;
         }
 
         .session-status {
@@ -1012,6 +1140,17 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             font-weight: 500;
             font-size: 13px;
             margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .role-badge-full {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            opacity: 0.8;
         }
 
         .session-meta-full {
@@ -1539,7 +1678,10 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
 <body>
     <!-- Panel Header -->
     <div class="panel-header">
-        <span class="panel-title">AI PROMPT REFINER</span>
+        <div class="panel-title-wrapper">
+            <span class="panel-title">AI PROMPT REFINER</span>
+            <span id="template-indicator" class="template-indicator" title="Current refinement mode"></span>
+        </div>
         <div class="panel-actions">
             <!-- New Session Button -->
             <button id="new-session-btn" class="action-icon-btn" title="New Session">
@@ -1686,6 +1828,19 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             }
         }
 
+        // Update template indicator in header
+        function updateTemplateIndicator(templateInfo) {
+            const indicator = document.getElementById('template-indicator');
+            if (indicator && templateInfo) {
+                indicator.textContent = templateInfo.name || 'Normal';
+                if (templateInfo.isStrict) {
+                    indicator.classList.add('strict');
+                } else {
+                    indicator.classList.remove('strict');
+                }
+            }
+        }
+
         // Auto-save state periodically and on events
         setInterval(saveState, 5000);
         window.addEventListener('beforeunload', saveState);
@@ -1716,12 +1871,16 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                     const lastUpdate = getTimeAgo(session.updatedAt);
                     const provider = session.metadata?.provider || 'Local';
                     const isCompleted = messageCount > 0 && session.messages[session.messages.length - 1]?.role === 'assistant';
+                    const roleIcon = session.roleInfo?.icon || '💻';
 
                     return \`
                         <div class="session-item \${session.id === currentSessionId ? 'active' : ''}" 
                              data-id="\${session.id}">
                             <div class="session-item-info">
-                                <div class="session-name">\${escapeHtml(session.name)}</div>
+                                <div class="session-name">
+                                    <span class="role-badge" title="\${session.roleInfo?.name || 'Programmer'}">\${roleIcon}</span>
+                                    \${escapeHtml(session.name)}
+                                </div>
                                 <div class="session-status">\${isCompleted ? 'Completed' : 'In Progress'}</div>
                             </div>
                             <div class="session-meta">\${provider} • \${lastUpdate}</div>
@@ -1818,12 +1977,14 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             const isArchived = session.metadata?.isArchived;
             const messageCount = session.metadata?.messageCount || 0;
             const lastUpdate = new Date(session.updatedAt).toLocaleDateString();
+            const roleIcon = session.roleInfo?.icon || '💻';
 
             return \`
                 <div class="session-item-full \${session.id === currentSessionId ? 'active' : ''}" 
                      data-id="\${session.id}">
                     <div class="session-info">
                         <div class="session-name-full">
+                            <span class="role-badge-full" title="\${session.roleInfo?.name || 'Programmer'}">\${roleIcon}</span>
                             \${escapeHtml(session.name)}
                             \${isArchived ? '<span style="font-size: 10px; opacity: 0.6; margin-left: 8px;">(Archived)</span>' : ''}
                         </div>
@@ -1852,8 +2013,8 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         }
 
         function createNewSession() {
-            const name = prompt('Session name (optional):');
-            vscode.postMessage({ type: 'createSession', name: name || undefined });
+            // Request session name from extension host (prompt doesn't work in sandboxed webview)
+            vscode.postMessage({ type: 'requestSessionName' });
         }
 
         function switchSession(sessionId) {
@@ -2025,19 +2186,6 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         closeFullListBtn.addEventListener('click', closeFullSessionList);
         modalOverlay.addEventListener('click', closeFullSessionList);
 
-        // Panel header buttons
-        if (newSessionBtn) {
-            console.log('[INIT] Attaching listener to newSessionBtn');
-            newSessionBtn.addEventListener('click', (e) => {
-                console.log('[CLICK] newSessionBtn clicked');
-                e.preventDefault();
-                e.stopPropagation();
-                createNewSession();
-            });
-        } else {
-            console.error('[INIT] ERROR: newSessionBtn not found!');
-        }
-
         // Confirmation Modal Functionality
         const confirmModalOverlay = document.getElementById('confirm-modal-overlay');
         const confirmModalTitle = document.getElementById('confirm-modal-title');
@@ -2072,25 +2220,6 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             }
         });
 
-        if (clearAllBtn) {
-            console.log('[INIT] Attaching listener to clearAllBtn');
-            clearAllBtn.addEventListener('click', (e) => {
-                console.log('[CLICK] Clear All Sessions button clicked');
-                e.preventDefault();
-                e.stopPropagation();
-                showConfirmModal(
-                    'Clear All Sessions',
-                    'Are you sure you want to clear all sessions? This action cannot be undone.',
-                    () => {
-                        console.log('[CLICK] Sending clearAllSessions message');
-                        vscode.postMessage({ type: 'clearAllSessions' });
-                    }
-                );
-            });
-        } else {
-            console.error('[INIT] ERROR: clearAllBtn not found!');
-        }
-
         // ==================== MESSAGE HANDLING ====================
 
         window.addEventListener('message', event => {
@@ -2104,6 +2233,11 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                         renderMessages(data.session.messages || []);
                     }
                     restoreState();
+                    
+                    // Update template indicator
+                    if (data.templateInfo) {
+                        updateTemplateIndicator(data.templateInfo);
+                    }
                     break;
 
                 // Session list updates
@@ -2228,6 +2362,46 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         restoreState();
         vscode.postMessage({ type: 'loadInitialState' });
         vscode.postMessage({ type: 'getAllSessions' });
+        
+        // Panel header buttons - initialize after everything is loaded
+        setTimeout(() => {
+            console.log('[INIT-DELAYED] Setting up panel header buttons...');
+            
+            // New Session Button
+            const newSessionBtnHeader = document.getElementById('new-session-btn');
+            if (newSessionBtnHeader) {
+                console.log('[INIT-DELAYED] Attaching listener to new-session-btn');
+                newSessionBtnHeader.addEventListener('click', (e) => {
+                    console.log('[CLICK] new-session-btn clicked');
+                    e.preventDefault();
+                    e.stopPropagation();
+                    createNewSession();
+                });
+            } else {
+                console.error('[INIT-DELAYED] ERROR: new-session-btn not found!');
+            }
+            
+            // Clear All Button
+            const clearAllBtnHeader = document.getElementById('clear-all-btn');
+            if (clearAllBtnHeader) {
+                console.log('[INIT-DELAYED] Attaching listener to clear-all-btn');
+                clearAllBtnHeader.addEventListener('click', (e) => {
+                    console.log('[CLICK] clear-all-btn clicked');
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showConfirmModal(
+                        'Clear All Sessions',
+                        'Are you sure you want to clear all sessions? This action cannot be undone.',
+                        () => {
+                            console.log('[CLICK] Sending clearAllSessions message');
+                            vscode.postMessage({ type: 'clearAllSessions' });
+                        }
+                    );
+                });
+            } else {
+                console.error('[INIT-DELAYED] ERROR: clear-all-btn not found!');
+            }
+        }, 100);
     </script>
 </body>
 </html>`;
