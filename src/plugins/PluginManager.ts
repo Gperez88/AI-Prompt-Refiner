@@ -154,7 +154,10 @@ export class PluginManager {
                 if (!this.eventHandlers.has(event)) {
                     this.eventHandlers.set(event, new Set());
                 }
-        this.eventHandlers.get(event)!.add(handler);
+                const handlers = this.eventHandlers.get(event);
+                if (handlers) {
+                    handlers.add(handler);
+                }
             },
 
             off: (event: PluginEvent, handler: EventHandler) => {

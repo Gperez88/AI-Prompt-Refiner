@@ -99,7 +99,11 @@ export function getRoleById(roleId: RoleId | string): Role | undefined {
  * Get the default role
  */
 export function getDefaultRole(): Role {
-    return PREDEFINED_ROLES.find(role => role.id === DEFAULT_ROLE_ID)!;
+    const role = PREDEFINED_ROLES.find(r => r.id === DEFAULT_ROLE_ID);
+    if (!role) {
+        throw new Error(`Default role "${DEFAULT_ROLE_ID}" is not defined`);
+    }
+    return role;
 }
 
 /**

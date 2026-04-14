@@ -5,7 +5,7 @@ import { logger } from '../services/Logger';
 import { ErrorHandler, RateLimiter, InputValidator } from '../utils/ErrorHandler';
 import { SessionManager } from '../services/SessionManager';
 import { ConfigurationManager } from '../services/ConfigurationManager';
-import { RoleId, isValidRoleId, getRoleById, PREDEFINED_ROLES } from '../types/Role';
+import { RoleId, isValidRoleId, getRoleById } from '../types/Role';
 import { Analytics } from '../services/Analytics';
 
 /**
@@ -36,7 +36,8 @@ type WebviewMessage =
   | { type: 'loadInitialState' }
   | { type: 'openSettings' }
   | { type: 'exportAllSessions' }
-  | { type: 'clearAllSessions' };
+  | { type: 'clearAllSessions' }
+  | { type: 'copyToClipboard'; text: string };
 
 /**
  * Provider for the chat view webview panel
@@ -63,9 +64,11 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
    */
     public resolveWebviewView(
         webviewView: vscode.WebviewView,
-        context: vscode.WebviewViewResolveContext,
+        _context: vscode.WebviewViewResolveContext,
         _token: vscode.CancellationToken,
     ) {
+        void _context;
+        void _token;
         this._view = webviewView;
 
         webviewView.webview.options = {
@@ -110,6 +113,9 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                     break;
                 case 'cancelEditing':
                     this.editingMessageId = null;
+                    break;
+                case 'copyToClipboard':
+                    await this._handleCopyToClipboard(data.text);
                     break;
 
                     // Session management
@@ -345,6 +351,25 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             this._view?.webview.postMessage({
                 type: 'removeMessage',
                 messageId
+            });
+        }
+    }
+
+    /**
+     * Copy text from webview using the extension host clipboard (webview Clipboard API is unreliable).
+     */
+    private async _handleCopyToClipboard(text: string) {
+        if (!this._view) {
+            return;
+        }
+        try {
+            await vscode.env.clipboard.writeText(text);
+            this._view.webview.postMessage({ type: 'showSuccess', content: 'Copied to clipboard' });
+        } catch (err) {
+            logger.error('Clipboard write failed', err as Error);
+            this._view.webview.postMessage({
+                type: 'showError',
+                content: 'Could not copy to clipboard',
             });
         }
     }
@@ -771,7 +796,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
    */
     private _getHtmlForWebview(webview: vscode.Webview, nonce: string) {
         const csp = [
-            "default-src 'none'",
+            'default-src \'none\'',
             `style-src 'unsafe-inline' ${webview.cspSource}`,
             `img-src ${webview.cspSource} https: data:`,
             `font-src ${webview.cspSource}`,
@@ -2084,8 +2109,8 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                     <div class="edit-container">
                         <textarea class="edit-textarea" id="edit-\${message.id}">\${escapeHtml(message.content)}</textarea>
                         <div class="edit-actions">
-                            <button class="edit-btn cancel" onclick="cancelEdit()">Cancel</button>
-                            <button class="edit-btn save" onclick="saveEdit('\${message.id}')">Save</button>
+                            <button type="button" class="edit-btn cancel">Cancel</button>
+                            <button type="button" class="edit-btn save" data-message-id="\${message.id}">Save</button>
                         </div>
                     </div>
                 \`;
@@ -2097,7 +2122,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                     </div>
                     <div class="message-content">\${escapeHtml(message.content)}</div>
                     <div class="message-actions">
-                        <button class="action-btn copy-btn" onclick="copyMessage('\${message.id}')" title="Copy">
+                        <button type="button" class="action-btn copy-btn" title="Copy">
                             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="14" height="14">
                                 <path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>
                                 <rect x="8" y="2" width="8" height="4" rx="1" stroke="currentColor" stroke-width="2" fill="none"/>
@@ -2117,16 +2142,19 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         }
 
         function copyMessage(id) {
+            const sid = String(id);
             const messageElements = document.querySelectorAll('.message');
             let messageContent = '';
             messageElements.forEach(el => {
-                if (el.dataset.id === id) {
+                if (el.dataset.id === sid) {
                     messageContent = el.querySelector('.message-content')?.textContent || '';
                 }
             });
-            if (messageContent) {
-                navigator.clipboard.writeText(messageContent);
-                showToast('Copied to clipboard', 'success');
+            const text = (messageContent || '').trim();
+            if (text.length > 0) {
+                vscode.postMessage({ type: 'copyToClipboard', text });
+            } else {
+                showToast('Nothing to copy', 'error');
             }
         }
 
@@ -2203,6 +2231,31 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         }
 
         // ==================== EVENT LISTENERS ====================
+
+        // Message actions: CSP allows only nonced <script>; inline onclick on dynamic HTML is blocked.
+        chatContainer.addEventListener('click', (e) => {
+            const t = e.target;
+            if (!t || !t.closest) return;
+            const copyBtn = t.closest('.copy-btn');
+            if (copyBtn) {
+                e.preventDefault();
+                const row = copyBtn.closest('.message');
+                const mid = row && row.dataset && row.dataset.id;
+                if (mid) copyMessage(mid);
+                return;
+            }
+            if (t.closest('.edit-btn.cancel')) {
+                e.preventDefault();
+                cancelEdit();
+                return;
+            }
+            const saveBtn = t.closest('.edit-btn.save');
+            if (saveBtn) {
+                e.preventDefault();
+                const mid = saveBtn.getAttribute('data-message-id');
+                if (mid) saveEdit(mid);
+            }
+        });
 
         sendBtn.addEventListener('click', sendMessage);
         

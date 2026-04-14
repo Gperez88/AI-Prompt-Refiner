@@ -1,6 +1,7 @@
-import { IAIProvider, ProviderMeta, RefineCallOptions } from './IAIProvider';
+import { IAIProvider, RefineCallOptions } from './IAIProvider';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { ConfigurationManager } from '../services/ConfigurationManager';
+import { getApiModelId } from '../utils/ModelMappings';
 import { promptForApiKey } from '../commands/settingsCommands';
 import { isAbortOrUserCancellation } from '../utils/cancellationAbort';
 
@@ -39,8 +40,9 @@ export class GeminiProvider implements IAIProvider {
     ): Promise<string> {
         try {
             const genAI = new GoogleGenerativeAI(apiKey);
+            const apiModelId = getApiModelId(modelId, this.id) ?? modelId;
             const model = genAI.getGenerativeModel({
-                model: modelId,
+                model: apiModelId,
                 systemInstruction: systemPrompt
             });
 

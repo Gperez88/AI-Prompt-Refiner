@@ -3,6 +3,7 @@ import { randomBytes } from 'crypto';
 import { ConfigurationManager } from '../services/ConfigurationManager';
 import { logger } from '../services/Logger';
 import { InputValidator } from '../utils/ErrorHandler';
+import { listOllamaModelTags } from '../utils/ollamaTags';
 import { t } from '../i18n';
 
 export class SettingsViewProvider implements vscode.WebviewViewProvider {
@@ -16,9 +17,11 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
 
     public resolveWebviewView(
         webviewView: vscode.WebviewView,
-        context: vscode.WebviewViewResolveContext,
+        _context: vscode.WebviewViewResolveContext,
         _token: vscode.CancellationToken,
     ) {
+        void _context;
+        void _token;
         this._view = webviewView;
 
         webviewView.webview.options = {
@@ -96,7 +99,7 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
     private async _getHtmlForWebview(webview: vscode.Webview, nonce: string) {
         const config = ConfigurationManager.getInstance();
         const currentProvider = config.getProviderId();
-        const currentModel = config.getModelId();
+        const currentModel = config.getModelIdForUI();
         const ollamaEndpoint = config.getOllamaEndpoint();
         const isStrictMode = config.isStrictMode();
         const hasKey = await config.getApiKey(currentProvider);
@@ -140,12 +143,33 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
                 { id: 'groq-llama3-70b', name: 'Llama 3.3 70B', description: 'Ultra-fast inference (replaces deprecated llama3-70b-8192)' }
             ],
             'ollama': [
-                { id: 'custom', name: 'Active Ollama Model', description: 'Uses whatever model is currently loaded in Ollama' }
-            ]
+                {
+                    id: 'ollama-custom',
+                    name: 'Auto (first installed model)',
+                    description: 'Uses the first model returned by Ollama at your endpoint (alphabetical order).',
+                },
+            ],
         };
 
+        const ollamaTags = await listOllamaModelTags(ollamaEndpoint);
+        if (ollamaTags.length > 0) {
+            modelsByProvider.ollama = [
+                ...modelsByProvider.ollama,
+                ...ollamaTags.map(name => ({
+                    id: name,
+                    name,
+                    description: 'Installed on this machine (ollama list)',
+                })),
+            ];
+        }
+
+        const ollamaListStatus =
+            ollamaTags.length > 0
+                ? `${ollamaTags.length} local model(s) detected for this endpoint.`
+                : 'Could not list models (is Ollama running and is the URL correct?).';
+
         const csp = [
-            "default-src 'none'",
+            'default-src \'none\'',
             `style-src 'unsafe-inline' ${webview.cspSource}`,
             `img-src ${webview.cspSource} https: data:`,
             `font-src ${webview.cspSource}`,
@@ -298,7 +322,7 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
                     <div id="ollama-group" class="form-group ${currentProvider === 'ollama' ? '' : 'hidden'}">
                         <label for="ollama-input">Ollama Endpoint</label>
                         <input type="text" id="ollama-input" value="${ollamaEndpoint}" placeholder="http://localhost:11434">
-                        <div class="hint">Make sure Ollama is running on this endpoint.</div>
+                        <div class="hint">Make sure Ollama is running on this endpoint. ${ollamaListStatus}</div>
                     </div>
                 </div>
 

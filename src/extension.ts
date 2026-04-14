@@ -6,8 +6,8 @@ import { registerTemplateCommands } from './commands/templateCommands';
 import { ConfigurationManager } from './services/ConfigurationManager';
 import { ChatViewProvider } from './views/ChatViewProvider';
 import { SettingsViewProvider } from './views/SettingsViewProvider';
-import { logger, LogLevel } from './services/Logger';
-import { ErrorHandler, ErrorType } from './utils/ErrorHandler';
+import { logger } from './services/Logger';
+import { ErrorHandler } from './utils/ErrorHandler';
 import { Analytics } from './services/Analytics';
 
 let statusBarItem: vscode.StatusBarItem;

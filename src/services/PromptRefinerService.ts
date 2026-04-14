@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { IAIProvider } from '../providers/IAIProvider';
 import { IProviderManager } from './IProviderManager';
 import { ProviderManager } from './ProviderManager';
 import { ConfigurationManager } from './ConfigurationManager';
@@ -14,7 +13,7 @@ import { getCircuitBreaker, CircuitBreakerError } from '../utils/CircuitBreaker'
 import { withRetry } from '../utils/Retry';
 import { linkCancellationToAbort } from '../utils/cancellationAbort';
 import { SessionManager } from './SessionManager';
-import { getRoleById, RoleId, DEFAULT_ROLE_ID } from '../types/Role';
+import { getRoleById, DEFAULT_ROLE_ID } from '../types/Role';
 import { Analytics } from './Analytics';
 
 export interface RefinementOptions {
@@ -278,6 +277,11 @@ Please refine the prompt again incorporating the feedback above.`;
      * @param roleId Optional role ID to load role-specific template
      */
     private async loadTemplate(templateId?: string, roleId?: string): Promise<string> {
+        const extensionContext = this.context;
+        if (!extensionContext) {
+            throw new Error('Extension context not initialized');
+        }
+
         // If specific template requested (not default/strict)
         if (templateId && templateId !== 'default' && templateId !== 'strict') {
             const template = await this.templateManager.getTemplate(templateId);
@@ -292,7 +296,7 @@ Please refine the prompt again incorporating the feedback above.`;
         
         if (useRoleTemplates && roleId && roleId !== 'default') {
             // Try to load role-specific template first
-            const roleTemplatePath = this.context!.asAbsolutePath(
+            const roleTemplatePath = extensionContext.asAbsolutePath(
                 path.join('dist', 'templates', 'roles', `${roleId}.md`)
             );
             
@@ -309,13 +313,13 @@ Please refine the prompt again incorporating the feedback above.`;
         // Load from file system (default or strict)
         const isStrict = config.isStrictMode();
         const templateName = isStrict ? 'prompt_template_strict.md' : 'prompt_template.md';
-        const templatePath = this.context!.asAbsolutePath(path.join('dist', 'templates', templateName));
+        const templatePath = extensionContext.asAbsolutePath(path.join('dist', 'templates', templateName));
 
         try {
             return await fs.promises.readFile(templatePath, 'utf-8');
         } catch (error) {
             // Try src path if dist fails (debug mode)
-            const srcPath = this.context!.asAbsolutePath(path.join('src', 'templates', templateName));
+            const srcPath = extensionContext.asAbsolutePath(path.join('src', 'templates', templateName));
             try {
                 return await fs.promises.readFile(srcPath, 'utf-8');
             } catch (err) {

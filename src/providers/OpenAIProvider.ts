@@ -1,6 +1,7 @@
 import { IAIProvider, RefineCallOptions } from './IAIProvider';
 import OpenAI from 'openai';
 import { ConfigurationManager } from '../services/ConfigurationManager';
+import { getApiModelId } from '../utils/ModelMappings';
 import { isAbortOrUserCancellation } from '../utils/cancellationAbort';
 import { promptForApiKey } from '../commands/settingsCommands';
 
@@ -40,8 +41,9 @@ export class OpenAIProvider implements IAIProvider {
                 apiKey: apiKey,
             });
 
+            const resolved = getApiModelId(modelId, this.id) ?? modelId;
             // Adjust model name if user left default gemini one
-            const effModelId = modelId.startsWith('gemini') ? 'gpt-4o-mini' : modelId;
+            const effModelId = resolved.startsWith('gemini') ? 'gpt-4o-mini' : resolved;
 
             const reqOptions = options?.signal ? { signal: options.signal } : undefined;
             const response = await openai.chat.completions.create(

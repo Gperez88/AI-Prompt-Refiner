@@ -14,14 +14,6 @@ export interface RetryConfig {
 }
 
 /**
- * Retry state
- */
-interface RetryState {
-    attempt: number;
-    lastError?: Error;
-}
-
-/**
  * Execute a function with retry logic and exponential backoff
  */
 export async function withRetry<T>(

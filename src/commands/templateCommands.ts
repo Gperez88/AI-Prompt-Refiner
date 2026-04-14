@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import { TemplateManager } from '../services/TemplateManager';
 import { logger } from '../services/Logger';
-import { t } from '../i18n';
 
 /**
  * Commands for managing custom templates

@@ -1,8 +1,13 @@
-import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { logger } from './Logger';
 import { ConfigurationManager } from './ConfigurationManager';
+import { MODEL_MAPPINGS } from '../utils/ModelMappings';
+import {
+    normalizeGeminiModelsResponse,
+    normalizeGitHubCatalogResponse,
+    normalizeOpenAICompatibleModels,
+} from './modelCatalog';
 
 /**
  * Model information for a provider
@@ -91,37 +96,46 @@ export class ModelRegistry {
         const defaults: Record<string, ProviderModels> = {
             github: {
                 lastUpdated: new Date().toISOString(),
-                models: [
-                    { id: 'gpt-4o', name: 'GPT-4o', description: 'Latest GPT-4 optimized model', isVerified: true },
-                    { id: 'gpt-4o-mini', name: 'GPT-4o Mini', description: 'Smaller, faster version', isVerified: true },
-                    { id: 'Meta-Llama-3.1-70B-Instruct', name: 'LLaMA 3.1 70B', description: 'Meta open-source model', isVerified: true },
-                    { id: 'mistralai/Mistral-large', name: 'Mistral Large', description: 'Powerful European model', isVerified: true }
-                ]
+                models: ModelRegistry.modelsFromMappings('github'),
             },
             openai: {
                 lastUpdated: new Date().toISOString(),
-                models: [
-                    { id: 'gpt-4o', name: 'GPT-4o', description: 'Most capable model', isVerified: true },
-                    { id: 'gpt-4o-mini', name: 'GPT-4o Mini', description: 'Fast and affordable', isVerified: true }
-                ]
+                models: ModelRegistry.modelsFromMappings('openai'),
             },
             gemini: {
                 lastUpdated: new Date().toISOString(),
-                models: [
-                    { id: 'gemini-flash', name: 'Gemini 2.0 Flash', description: 'Fast and efficient', isVerified: true },
-                    { id: 'gemini-pro', name: 'Gemini 2.0 Pro', description: 'Most capable Gemini model', isVerified: true }
-                ]
+                models: ModelRegistry.modelsFromMappings('gemini'),
             },
             groq: {
                 lastUpdated: new Date().toISOString(),
-                models: [
-                    { id: 'groq-llama3-70b', name: 'Llama 3.3 70B', description: 'Ultra-fast inference (current model)', isVerified: true }
-                ]
-            }
+                models: ModelRegistry.modelsFromMappings('groq'),
+            },
         };
 
         for (const [provider, info] of Object.entries(defaults)) {
             this.modelsCache.set(provider, info);
+        }
+    }
+
+    /** Defaults and GitHub catalog fallback: only models defined in MODEL_MAPPINGS for this provider. */
+    private static modelsFromMappings(provider: string): ModelInfo[] {
+        return MODEL_MAPPINGS.filter(m => m.provider === provider).map(m => ({
+            id: m.uiId,
+            name: m.name,
+            description: `${m.name} (${m.apiId})`,
+            isVerified: true,
+        }));
+    }
+
+    private async fetchJson(url: string, init?: RequestInit): Promise<unknown | null> {
+        try {
+            const response = await fetch(url, init);
+            if (!response.ok) {
+                return null;
+            }
+            return await response.json() as unknown;
+        } catch {
+            return null;
         }
     }
 
@@ -187,67 +201,99 @@ export class ModelRegistry {
     private async fetchOpenAIModels(): Promise<ModelInfo[]> {
         try {
             const apiKey = await ConfigurationManager.getInstance().getApiKey('openai');
-            
-            if (!apiKey) return [];
 
-            const response = await fetch('https://api.openai.com/v1/models', {
-                headers: { 'Authorization': `Bearer ${apiKey}` }
+            if (!apiKey) {
+                return [];
+            }
+
+            const data = await this.fetchJson('https://api.openai.com/v1/models', {
+                headers: { 'Authorization': `Bearer ${apiKey}` },
             });
+            if (data === null) {
+                return ModelRegistry.modelsFromMappings('openai');
+            }
 
-            if (!response.ok) return [];
-
-            const data = await response.json() as { data?: Array<{ id?: string }> };
-            const rows = Array.isArray(data.data) ? data.data : [];
-            
-            // Filter for GPT models only
-            return rows
-                .filter((m): m is { id: string } => typeof m?.id === 'string' && m.id.startsWith('gpt-'))
-                .map((m) => ({
-                    id: m.id,
-                    name: m.id,
-                    description: 'OpenAI model',
-                    isVerified: false // Will be verified on first use
-                }));
+            const mapped = normalizeOpenAICompatibleModels(data, 'openai');
+            return mapped.length > 0 ? mapped : ModelRegistry.modelsFromMappings('openai');
         } catch {
             return [];
         }
     }
 
     /**
-     * Fetch GitHub Marketplace models
+     * Fetch GitHub Models catalog (REST); fallback to MODEL_MAPPINGS when empty or on error.
      */
     private async fetchGitHubModels(): Promise<ModelInfo[]> {
-        // GitHub doesn't have a public models API, use hardcoded verified list
-        return [
-            { id: 'gpt-4o', name: 'GPT-4o', description: 'Latest GPT-4 optimized model', isVerified: true },
-            { id: 'gpt-4o-mini', name: 'GPT-4o Mini', description: 'Smaller, faster version', isVerified: true },
-            { id: 'Meta-Llama-3.1-70B-Instruct', name: 'LLaMA 3.1 70B', description: 'Meta open-source model', isVerified: true },
-            { id: 'mistralai/Mistral-large', name: 'Mistral Large', description: 'Powerful European model', isVerified: true }
-        ];
+        try {
+            const apiKey = await ConfigurationManager.getInstance().getApiKey('github');
+            if (!apiKey) {
+                return [];
+            }
+
+            const data = await this.fetchJson('https://models.github.ai/catalog/models', {
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Accept': 'application/vnd.github+json',
+                    'X-GitHub-Api-Version': '2022-11-28',
+                },
+            });
+            if (data === null) {
+                return ModelRegistry.modelsFromMappings('github');
+            }
+
+            const mapped = normalizeGitHubCatalogResponse(data);
+            return mapped.length > 0 ? mapped : ModelRegistry.modelsFromMappings('github');
+        } catch {
+            return [];
+        }
     }
 
     /**
-     * Fetch Gemini models
+     * Fetch Gemini models from Generative Language API.
      */
     private async fetchGeminiModels(): Promise<ModelInfo[]> {
-        // Gemini API doesn't have a public models list endpoint
-        // Return verified models
-        return [
-            { id: 'gemini-flash', name: 'Gemini 2.0 Flash', description: 'Fast and efficient', isVerified: true },
-            { id: 'gemini-pro', name: 'Gemini 2.0 Pro', description: 'Most capable Gemini model', isVerified: true }
-        ];
+        try {
+            const apiKey = await ConfigurationManager.getInstance().getApiKey('gemini');
+            if (!apiKey) {
+                return [];
+            }
+
+            const url =
+                `https://generativelanguage.googleapis.com/v1beta/models?pageSize=256&key=${encodeURIComponent(apiKey)}`;
+            const data = await this.fetchJson(url);
+            if (data === null) {
+                return ModelRegistry.modelsFromMappings('gemini');
+            }
+
+            const mapped = normalizeGeminiModelsResponse(data);
+            return mapped.length > 0 ? mapped : ModelRegistry.modelsFromMappings('gemini');
+        } catch {
+            return [];
+        }
     }
 
     /**
-     * Fetch Groq models
+     * Fetch Groq models (OpenAI-compatible list endpoint).
      */
     private async fetchGroqModels(): Promise<ModelInfo[]> {
-        // Return verified Groq models
-        // Note: llama3-70b-8192 and mixtral-8x7b-32768 have been decommissioned
-        // Current production model: llama-3.3-70b-versatile
-        return [
-            { id: 'groq-llama3-70b', name: 'Llama 3.3 70B', description: 'Ultra-fast inference (current model)', isVerified: true }
-        ];
+        try {
+            const apiKey = await ConfigurationManager.getInstance().getApiKey('groq');
+            if (!apiKey) {
+                return [];
+            }
+
+            const data = await this.fetchJson('https://api.groq.com/openai/v1/models', {
+                headers: { 'Authorization': `Bearer ${apiKey}` },
+            });
+            if (data === null) {
+                return ModelRegistry.modelsFromMappings('groq');
+            }
+
+            const mapped = normalizeOpenAICompatibleModels(data, 'groq');
+            return mapped.length > 0 ? mapped : ModelRegistry.modelsFromMappings('groq');
+        } catch {
+            return [];
+        }
     }
 
     /**

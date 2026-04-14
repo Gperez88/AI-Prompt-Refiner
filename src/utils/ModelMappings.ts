@@ -51,6 +51,8 @@ export const LEGACY_MODEL_MAPPINGS: Record<string, { provider: string; newId: st
     
     // Old Public provider IDs (disabled but for reference)
     'gpt-4o-mini': { provider: 'github', newId: 'github-gpt-4o-mini' },
+    // Bare API-style id stored while using GitHub → UI id used by ModelRegistry / settings
+    'gpt-4o': { provider: 'github', newId: 'github-gpt-4o' },
     'llama3': { provider: 'github', newId: 'github-llama-3.1-70b' }
 };
 

@@ -1,6 +1,7 @@
 import { IAIProvider, RefineCallOptions } from './IAIProvider';
 import { isAbortOrUserCancellation } from '../utils/cancellationAbort';
 import { ConfigurationManager } from '../services/ConfigurationManager';
+import { listOllamaModelTags } from '../utils/ollamaTags';
 // using global fetch available in VS Code extension host
 
 export class OllamaProvider implements IAIProvider {
@@ -17,11 +18,12 @@ export class OllamaProvider implements IAIProvider {
     async refine(userPrompt: string, systemTemplate: string, options?: RefineCallOptions): Promise<string> {
         const config = ConfigurationManager.getInstance();
         const endpoint = this.sanitizeEndpoint(config.getOllamaEndpoint());
-        const modelId = this.getEffectiveModelId(config.getModelId());
 
         if (!endpoint) {
             throw new Error('Ollama endpoint is not configured.');
         }
+
+        const modelId = await this.resolveOllamaModelId(endpoint, config.getModelId(), options?.signal);
 
         const fullPrompt = this.buildFullPrompt(userPrompt, systemTemplate);
         const temperature = options?.temperature ?? 0.3;
@@ -51,14 +53,38 @@ export class OllamaProvider implements IAIProvider {
     }
 
     /**
-     * Selects the effective model ID, applying defaults if necessary.
+     * Resolves the Ollama tag to call: concrete model id, or first installed model when placeholder / legacy.
      */
-    private getEffectiveModelId(configuredModelId: string): string {
-        if (configuredModelId === 'custom' || !configuredModelId || 
-            configuredModelId.includes('gpt-') || configuredModelId.includes('claude-')) {
-            return 'llama3';
+    private async resolveOllamaModelId(
+        endpoint: string,
+        configuredModelId: string,
+        signal?: AbortSignal,
+    ): Promise<string> {
+        if (!this.needsAutoModelSelection(configuredModelId)) {
+            return configuredModelId;
         }
-        return configuredModelId;
+
+        const tags = await listOllamaModelTags(endpoint, signal);
+        if (tags.length === 0) {
+            throw new Error(
+                'No Ollama models found at this endpoint. Install one with `ollama pull <model>` or check the URL in settings.',
+            );
+        }
+        return tags[0];
+    }
+
+    /** True when the stored value is the generic Ollama option or a leftover id from another provider / old default. */
+    private needsAutoModelSelection(id: string): boolean {
+        if (!id || id === 'custom' || id === 'ollama-custom') {
+            return true;
+        }
+        if (id === 'llama3') {
+            return true;
+        }
+        if (id.includes('gpt-') || id.includes('claude-')) {
+            return true;
+        }
+        return false;
     }
 
     /**
