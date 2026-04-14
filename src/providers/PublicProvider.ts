@@ -1,5 +1,6 @@
-import { IAIProvider } from './IAIProvider';
+import { IAIProvider, RefineCallOptions } from './IAIProvider';
 import { ConfigurationManager } from '../services/ConfigurationManager';
+import { isAbortOrUserCancellation } from '../utils/cancellationAbort';
 
 /**
  * PublicProvider provides access to free AI models that don't require an API Key.
@@ -13,7 +14,7 @@ export class PublicProvider implements IAIProvider {
         return true; // Always configured as it's public
     }
 
-    async refine(userPrompt: string, systemTemplate: string, options?: { strict?: boolean; temperature?: number }): Promise<string> {
+    async refine(userPrompt: string, systemTemplate: string, options?: RefineCallOptions): Promise<string> {
         const config = ConfigurationManager.getInstance();
         const modelId = config.getModelId();
 
@@ -24,21 +25,29 @@ export class PublicProvider implements IAIProvider {
 
         try {
             // Attempt DuckDuckGo AI first
-            return await this.refineDuckDuckGo(userPrompt, systemTemplate, modelId);
-        } catch (ddgError: any) {
-            console.warn(`DuckDuckGo AI failed: ${ddgError.message}. Falling back to HuggingFace Router...`);
+            return await this.refineDuckDuckGo(userPrompt, systemTemplate, modelId, options?.signal);
+        } catch (ddgError: unknown) {
+            if (isAbortOrUserCancellation(ddgError)) {
+                throw new Error('Operation cancelled');
+            }
+            const ddgMsg = ddgError instanceof Error ? ddgError.message : String(ddgError);
+            console.warn(`DuckDuckGo AI failed: ${ddgMsg}. Falling back to HuggingFace Router...`);
             
             try {
                 // Fallback to HuggingFace Router (which sometimes works for public models if they aren't rate limited)
-                return await this.refineHuggingFace(userPrompt, systemTemplate, 'mistralai/Mistral-7B-Instruct-v0.3');
-            } catch (hfError: any) {
-                console.error(`All public providers failed. HF Error: ${hfError.message}`);
-                throw new Error(`Free service is currently unavailable. DuckDuckGo returned: ${ddgError.message}. Please try again later, use Ollama (local), or configure an API Key.`);
+                return await this.refineHuggingFace(userPrompt, systemTemplate, 'mistralai/Mistral-7B-Instruct-v0.3', options?.signal);
+            } catch (hfError: unknown) {
+                if (isAbortOrUserCancellation(hfError)) {
+                    throw new Error('Operation cancelled');
+                }
+                const hfMsg = hfError instanceof Error ? hfError.message : String(hfError);
+                console.error(`All public providers failed. HF Error: ${hfMsg}`);
+                throw new Error(`Free service is currently unavailable. DuckDuckGo returned: ${ddgMsg}. Please try again later, use Ollama (local), or configure an API Key.`);
             }
         }
     }
 
-    private async refineDuckDuckGo(userPrompt: string, systemPrompt: string, modelId: string): Promise<string> {
+    private async refineDuckDuckGo(userPrompt: string, systemPrompt: string, modelId: string, signal?: AbortSignal): Promise<string> {
         // Mapping internal IDs to DDG expected model names
         let ddgModel = 'gpt-4o-mini';
         if (modelId.includes('llama')) ddgModel = 'meta-llama/Llama-3.3-70B-Instruct-Turbo';
@@ -57,7 +66,8 @@ export class PublicProvider implements IAIProvider {
                 'Referer': 'https://duckduckgo.com/',
                 'Origin': 'https://duckduckgo.com',
                 'Accept': '*/*'
-            }
+            },
+            signal,
         });
 
         if (!vqdResponse.ok) {
@@ -72,15 +82,22 @@ export class PublicProvider implements IAIProvider {
             const body = await vqdResponse.text();
             const vqdMatch = body.match(/vqd=["']?([^"']+)["']?/);
             if (vqdMatch) {
-                return this.executeDDGChat(userPrompt, systemPrompt, ddgModel, vqdMatch[1], userAgent);
+                return this.executeDDGChat(userPrompt, systemPrompt, ddgModel, vqdMatch[1], userAgent, signal);
             }
             throw new Error('No VQD token received from DuckDuckGo.');
         }
 
-        return await this.executeDDGChat(userPrompt, systemPrompt, ddgModel, vqd, userAgent);
+        return await this.executeDDGChat(userPrompt, systemPrompt, ddgModel, vqd, userAgent, signal);
     }
 
-    private async executeDDGChat(userPrompt: string, systemPrompt: string, ddgModel: string, vqd: string, userAgent: string): Promise<string> {
+    private async executeDDGChat(
+        userPrompt: string,
+        systemPrompt: string,
+        ddgModel: string,
+        vqd: string,
+        userAgent: string,
+        signal?: AbortSignal,
+    ): Promise<string> {
         // 2. Send Chat Request
         const response = await fetch('https://duckduckgo.com/duckchat/v1/chat', {
             method: 'POST',
@@ -100,7 +117,8 @@ export class PublicProvider implements IAIProvider {
                         content: `IMPORTANT: You are a prompt engineering expert. Your task is to REFINE the user's prompt based on the provided system template. DO NOT execute the prompt, only refine it. Use the same language as the user.\n\nSYSTEM TEMPLATE:\n${systemPrompt}\n\nUSER PROMPT TO REFINE:\n${userPrompt}` 
                     }
                 ]
-            })
+            }),
+            signal,
         });
 
         if (response.status === 418) {
@@ -136,7 +154,7 @@ export class PublicProvider implements IAIProvider {
         return fullContent;
     }
 
-    private async refineHuggingFace(userPrompt: string, systemPrompt: string, hfModel: string): Promise<string> {
+    private async refineHuggingFace(userPrompt: string, systemPrompt: string, hfModel: string, signal?: AbortSignal): Promise<string> {
         // Re-implementing a minimal HF router call as a backup
         const routerUrl = `https://router.huggingface.co/hf-inference/models/${hfModel}/v1/chat/completions`;
         
@@ -150,7 +168,8 @@ export class PublicProvider implements IAIProvider {
                     { role: 'user', content: userPrompt }
                 ],
                 max_tokens: 1000
-            })
+            }),
+            signal,
         });
 
         if (!response.ok) {

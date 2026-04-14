@@ -1,4 +1,5 @@
 import { logger } from '../services/Logger';
+import { isAbortOrUserCancellation } from './cancellationAbort';
 
 /**
  * Circuit breaker states
@@ -76,7 +77,9 @@ export class CircuitBreaker {
             this.onSuccess();
             return result;
         } catch (error) {
-            this.onFailure();
+            if (!isAbortOrUserCancellation(error)) {
+                this.onFailure();
+            }
             throw error;
         }
     }

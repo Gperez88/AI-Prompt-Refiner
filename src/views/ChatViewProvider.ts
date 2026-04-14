@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { randomBytes } from 'crypto';
 import { PromptRefinerService } from '../services/PromptRefinerService';
 import { logger } from '../services/Logger';
 import { ErrorHandler, RateLimiter, InputValidator } from '../utils/ErrorHandler';
@@ -47,6 +48,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     private rateLimiter!: RateLimiter;
     private sessionManager: SessionManager;
     private editingMessageId: string | null = null;
+    private refineCancellation?: vscode.CancellationTokenSource;
 
     constructor(
     private readonly _extensionUri: vscode.Uri,
@@ -77,10 +79,11 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             this._loadInitialState();
         });
 
-        webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+        const nonce = randomBytes(16).toString('base64');
+        webviewView.webview.html = this._getHtmlForWebview(webviewView.webview, nonce);
 
         // Handle messages from webview
-        webviewView.webview.onDidReceiveMessage(async (data: WebviewMessage) => {
+        const messageDisposable = webviewView.webview.onDidReceiveMessage(async (data: WebviewMessage) => {
             try {
                 switch (data.type) {
                 // Message handling
@@ -174,6 +177,12 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                 });
             }
         });
+        webviewView.onDidDispose(() => {
+            messageDisposable.dispose();
+            this.refineCancellation?.cancel();
+            this.refineCancellation?.dispose();
+            this.refineCancellation = undefined;
+        });
     }
 
     // ==================== MESSAGE HANDLERS ====================
@@ -241,9 +250,14 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             sessionId: activeSession.id 
         });
 
+        this.refineCancellation?.cancel();
+        this.refineCancellation?.dispose();
+        const refineCts = new vscode.CancellationTokenSource();
+        this.refineCancellation = refineCts;
+
         try {
             const service = PromptRefinerService.getInstance();
-            const result = await service.refine(prompt);
+            const result = await service.refine(prompt, refineCts.token);
             const refined = result.refined;
 
             // Add assistant message to session
@@ -263,9 +277,14 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             await this._notifySessionListChanged();
 
             logger.info('Chat refinement completed successfully', { sessionId: activeSession.id });
-        } catch (error: any) {
-            const errorInfo = ErrorHandler.classifyError(error);
-            logger.error('Chat refinement failed', error, errorInfo);
+        } catch (error: unknown) {
+            const err = error instanceof Error ? error : new Error(String(error));
+            if (err.message === 'Operation cancelled' || refineCts.token.isCancellationRequested) {
+                logger.info('Chat refinement cancelled', { sessionId: activeSession.id });
+                return;
+            }
+            const errorInfo = ErrorHandler.classifyError(err);
+            logger.error('Chat refinement failed', err, errorInfo);
 
             // Add error message to session
             const errorMessage = await this.sessionManager.addMessageToSession(activeSession.id, {
@@ -280,6 +299,12 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                 message: errorMessage
             });
         } finally {
+            if (this.refineCancellation === refineCts) {
+                refineCts.dispose();
+                this.refineCancellation = undefined;
+            } else {
+                refineCts.dispose();
+            }
             this._view?.webview.postMessage({ type: 'setLoading', loading: false });
         }
     }
@@ -744,13 +769,20 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     /**
    * Generate the HTML for the webview
    */
-    private _getHtmlForWebview(webview: vscode.Webview) {
-        const iconUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'icon.png'));
+    private _getHtmlForWebview(webview: vscode.Webview, nonce: string) {
+        const csp = [
+            "default-src 'none'",
+            `style-src 'unsafe-inline' ${webview.cspSource}`,
+            `img-src ${webview.cspSource} https: data:`,
+            `font-src ${webview.cspSource}`,
+            `script-src 'nonce-${nonce}'`,
+        ].join('; ');
 
         return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="${csp}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Prompt Refiner Chat</title>
     <style>
@@ -1767,7 +1799,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         </div>
     </div>
 
-    <script>
+    <script nonce="${nonce}">
         const vscode = acquireVsCodeApi();
         const chatContainer = document.getElementById('chat-container');
         const promptInput = document.getElementById('prompt-input');

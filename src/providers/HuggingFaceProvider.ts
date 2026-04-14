@@ -1,4 +1,5 @@
-import { IAIProvider } from './IAIProvider';
+import { IAIProvider, RefineCallOptions } from './IAIProvider';
+import { isAbortOrUserCancellation } from '../utils/cancellationAbort';
 import { ConfigurationManager } from '../services/ConfigurationManager';
 import { promptForApiKey } from '../commands/settingsCommands';
 
@@ -10,7 +11,7 @@ export class HuggingFaceProvider implements IAIProvider {
         return true;
     }
 
-    async refine(userPrompt: string, systemTemplate: string, options?: { strict?: boolean; temperature?: number }): Promise<string> {
+    async refine(userPrompt: string, systemTemplate: string, options?: RefineCallOptions): Promise<string> {
         const config = ConfigurationManager.getInstance();
         const apiKey = await config.getApiKey(this.id);
 
@@ -20,13 +21,19 @@ export class HuggingFaceProvider implements IAIProvider {
             if (!keyAfterPrompt) {
                 throw new Error('HuggingFace Access Token is required.');
             }
-            return this.executeRefinement(keyAfterPrompt, userPrompt, systemTemplate, config.getModelId());
+            return this.executeRefinement(keyAfterPrompt, userPrompt, systemTemplate, config.getModelId(), options);
         }
 
-        return this.executeRefinement(apiKey, userPrompt, systemTemplate, config.getModelId());
+        return this.executeRefinement(apiKey, userPrompt, systemTemplate, config.getModelId(), options);
     }
 
-    private async executeRefinement(apiKey: string, userPrompt: string, systemPrompt: string, modelId: string): Promise<string> {
+    private async executeRefinement(
+        apiKey: string,
+        userPrompt: string,
+        systemPrompt: string,
+        modelId: string,
+        options?: RefineCallOptions,
+    ): Promise<string> {
         try {
             // Default model if none selected or incompatible
             let effModelId = modelId;
@@ -46,7 +53,8 @@ export class HuggingFaceProvider implements IAIProvider {
                         max_new_tokens: 1000,
                         return_full_text: false
                     }
-                })
+                }),
+                signal: options?.signal,
             });
 
             if (!response.ok) {
@@ -65,8 +73,12 @@ export class HuggingFaceProvider implements IAIProvider {
 
             return JSON.stringify(result);
 
-        } catch (error: any) {
-            throw new Error(`HuggingFace Error: ${error.message}`);
+        } catch (error: unknown) {
+            if (isAbortOrUserCancellation(error)) {
+                throw new Error('Operation cancelled');
+            }
+            const msg = error instanceof Error ? error.message : String(error);
+            throw new Error(`HuggingFace Error: ${msg}`);
         }
     }
 }

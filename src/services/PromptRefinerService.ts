@@ -12,6 +12,7 @@ import { OutputValidator, ValidationResult } from '../utils/OutputValidator';
 import { LRUCache, refinementCache } from '../utils/Cache';
 import { getCircuitBreaker, CircuitBreakerError } from '../utils/CircuitBreaker';
 import { withRetry } from '../utils/Retry';
+import { linkCancellationToAbort } from '../utils/cancellationAbort';
 import { SessionManager } from './SessionManager';
 import { getRoleById, RoleId, DEFAULT_ROLE_ID } from '../types/Role';
 import { Analytics } from './Analytics';
@@ -35,7 +36,7 @@ export interface IPromptRefinerService {
 }
 
 export class PromptRefinerService implements IPromptRefinerService {
-    private static instance: PromptRefinerService;
+    private static instance: PromptRefinerService | undefined;
     private providerManager: IProviderManager;
     private templateManager: TemplateManager;
     private context: vscode.ExtensionContext | undefined;
@@ -72,7 +73,7 @@ export class PromptRefinerService implements IPromptRefinerService {
      * Reset singleton instance (for testing)
      */
     public static resetInstance(): void {
-        PromptRefinerService.instance = undefined as any;
+        PromptRefinerService.instance = undefined;
     }
 
     public initialize(context: vscode.ExtensionContext) {
@@ -119,8 +120,13 @@ export class PromptRefinerService implements IPromptRefinerService {
         const cached = refinementCache.get(cacheKey);
         if (cached) {
             logger.info('Cache hit - returning cached refinement');
+            let validationResult: ValidationResult | undefined;
+            if (options?.validateOutput !== false) {
+                validationResult = OutputValidator.validate(cached, isStrict);
+            }
             return {
                 refined: cached,
+                validation: validationResult,
                 templateUsed: templateId,
                 iteration: options?.iteration || 1,
             };
@@ -156,7 +162,8 @@ export class PromptRefinerService implements IPromptRefinerService {
 
         const activeProvider = this.providerManager.getActiveProvider();
         const circuitBreaker = getCircuitBreaker(providerId);
-        
+        const { signal, dispose } = linkCancellationToAbort(token);
+
         try {
             // Execute with circuit breaker and retry logic
             const refined = await circuitBreaker.execute(async () => {
@@ -166,7 +173,7 @@ export class PromptRefinerService implements IPromptRefinerService {
                         throw new Error('Operation cancelled');
                     }
                     
-                    return activeProvider.refine(userPrompt, systemTemplate, { strict: isStrict });
+                    return activeProvider.refine(userPrompt, systemTemplate, { strict: isStrict, signal });
                 }, {
                     maxRetries: 3,
                     baseDelayMs: 1000,
@@ -236,6 +243,8 @@ export class PromptRefinerService implements IPromptRefinerService {
             
             logger.error('Refinement failed', error as Error);
             throw error;
+        } finally {
+            dispose();
         }
     }
 
@@ -288,7 +297,7 @@ Please refine the prompt again incorporating the feedback above.`;
             );
             
             try {
-                const roleTemplate = fs.readFileSync(roleTemplatePath, 'utf-8');
+                const roleTemplate = await fs.promises.readFile(roleTemplatePath, 'utf-8');
                 logger.debug('Loaded role-specific template', { roleId });
                 return roleTemplate;
             } catch (error) {
@@ -303,12 +312,12 @@ Please refine the prompt again incorporating the feedback above.`;
         const templatePath = this.context!.asAbsolutePath(path.join('dist', 'templates', templateName));
 
         try {
-            return fs.readFileSync(templatePath, 'utf-8');
+            return await fs.promises.readFile(templatePath, 'utf-8');
         } catch (error) {
             // Try src path if dist fails (debug mode)
             const srcPath = this.context!.asAbsolutePath(path.join('src', 'templates', templateName));
             try {
-                return fs.readFileSync(srcPath, 'utf-8');
+                return await fs.promises.readFile(srcPath, 'utf-8');
             } catch (err) {
                 logger.error('Failed to load prompt template', err as Error);
                 throw new Error('Could not load prompt template. Please check installation.');

@@ -1,6 +1,7 @@
-import { IAIProvider } from './IAIProvider';
+import { IAIProvider, RefineCallOptions } from './IAIProvider';
 import Groq from 'groq-sdk';
 import { ConfigurationManager } from '../services/ConfigurationManager';
+import { isAbortOrUserCancellation } from '../utils/cancellationAbort';
 import { promptForApiKey } from '../commands/settingsCommands';
 
 export class GroqProvider implements IAIProvider {
@@ -11,7 +12,7 @@ export class GroqProvider implements IAIProvider {
         return true;
     }
 
-    async refine(userPrompt: string, systemTemplate: string, options?: { strict?: boolean; temperature?: number }): Promise<string> {
+    async refine(userPrompt: string, systemTemplate: string, options?: RefineCallOptions): Promise<string> {
         const config = ConfigurationManager.getInstance();
         const apiKey = await config.getApiKey(this.id);
 
@@ -21,13 +22,19 @@ export class GroqProvider implements IAIProvider {
             if (!keyAfterPrompt) {
                 throw new Error('API Key is required to use Groq.');
             }
-            return this.executeRefinement(keyAfterPrompt, userPrompt, systemTemplate, config.getModelId());
+            return this.executeRefinement(keyAfterPrompt, userPrompt, systemTemplate, config.getModelId(), options);
         }
 
-        return this.executeRefinement(apiKey, userPrompt, systemTemplate, config.getModelId());
+        return this.executeRefinement(apiKey, userPrompt, systemTemplate, config.getModelId(), options);
     }
 
-    private async executeRefinement(apiKey: string, userPrompt: string, systemPrompt: string, modelId: string): Promise<string> {
+    private async executeRefinement(
+        apiKey: string,
+        userPrompt: string,
+        systemPrompt: string,
+        modelId: string,
+        options?: RefineCallOptions,
+    ): Promise<string> {
         try {
             const groq = new Groq({
                 apiKey: apiKey,
@@ -44,19 +51,29 @@ export class GroqProvider implements IAIProvider {
                 effModelId = 'llama-3.3-70b-versatile';
             }
 
-            const response = await groq.chat.completions.create({
-                messages: [
-                    { role: 'system', content: systemPrompt },
-                    { role: 'user', content: userPrompt }
-                ],
-                model: effModelId,
-            });
+            const reqOptions = options?.signal ? { signal: options.signal } : undefined;
+            const response = await groq.chat.completions.create(
+                {
+                    messages: [
+                        { role: 'system', content: systemPrompt },
+                        { role: 'user', content: userPrompt }
+                    ],
+                    model: effModelId,
+                },
+                reqOptions,
+            );
 
             return response.choices[0]?.message?.content || '';
-        } catch (error: any) {
+        } catch (error: unknown) {
+            if (isAbortOrUserCancellation(error)) {
+                throw new Error('Operation cancelled');
+            }
             // Handle specific Groq errors
-            const errorMessage = error.message || '';
-            const errorCode = error.code || '';
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            const errorCode =
+                typeof error === 'object' && error !== null && 'code' in error
+                    ? String((error as { code?: string }).code ?? '')
+                    : '';
             
             // Detect decommissioned/deprecated model errors
             if (errorCode === 'model_decommissioned' || 
@@ -103,7 +120,7 @@ export class GroqProvider implements IAIProvider {
             }
             
             // Default error
-            throw new Error(`Groq Error: ${error.message}`);
+            throw new Error(`Groq Error: ${errorMessage}`);
         }
     }
 }

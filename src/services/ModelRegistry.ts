@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { logger } from './Logger';
+import { ConfigurationManager } from './ConfigurationManager';
 
 /**
  * Model information for a provider
@@ -185,8 +186,7 @@ export class ModelRegistry {
      */
     private async fetchOpenAIModels(): Promise<ModelInfo[]> {
         try {
-            const config = vscode.workspace.getConfiguration('promptRefiner');
-            const apiKey = await config.get<string>('apiKeys.openai');
+            const apiKey = await ConfigurationManager.getInstance().getApiKey('openai');
             
             if (!apiKey) return [];
 
@@ -196,12 +196,13 @@ export class ModelRegistry {
 
             if (!response.ok) return [];
 
-            const data = await response.json() as any;
+            const data = await response.json() as { data?: Array<{ id?: string }> };
+            const rows = Array.isArray(data.data) ? data.data : [];
             
             // Filter for GPT models only
-            return data.data
-                .filter((m: any) => m.id.startsWith('gpt-'))
-                .map((m: any) => ({
+            return rows
+                .filter((m): m is { id: string } => typeof m?.id === 'string' && m.id.startsWith('gpt-'))
+                .map((m) => ({
                     id: m.id,
                     name: m.id,
                     description: 'OpenAI model',

@@ -1,8 +1,9 @@
-import { IAIProvider } from './IAIProvider';
+import { IAIProvider, RefineCallOptions } from './IAIProvider';
 import { ConfigurationManager } from '../services/ConfigurationManager';
 import { ModelRegistry } from '../services/ModelRegistry';
 import { logger } from '../services/Logger';
 import { getApiModelId } from '../utils/ModelMappings';
+import { isAbortOrUserCancellation } from '../utils/cancellationAbort';
 
 /**
  * GitHubProvider integrates with GitHub Marketplace models.
@@ -17,7 +18,7 @@ export class GitHubProvider implements IAIProvider {
         return true;
     }
 
-    async refine(userPrompt: string, systemTemplate: string, options?: { strict?: boolean; temperature?: number }): Promise<string> {
+    async refine(userPrompt: string, systemTemplate: string, options?: RefineCallOptions): Promise<string> {
         const config = ConfigurationManager.getInstance();
         const apiKey = await config.getApiKey(this.id);
         const modelId = config.getModelId();
@@ -61,7 +62,8 @@ export class GitHubProvider implements IAIProvider {
                     temperature: options?.temperature ?? 0.3,
                     max_tokens: 4096,
                     top_p: 1
-                })
+                }),
+                signal: options?.signal,
             });
 
             if (!response.ok) {
@@ -78,12 +80,16 @@ export class GitHubProvider implements IAIProvider {
 
             throw new Error('No content returned from GitHub Marketplace.');
 
-        } catch (error: any) {
+        } catch (error: unknown) {
+            if (isAbortOrUserCancellation(error)) {
+                throw new Error('Operation cancelled');
+            }
             // Report failure to ModelRegistry for telemetry
             const registry = ModelRegistry.getInstance();
-            await registry.reportModelFailure(this.id, modelId, error);
-            
-            throw new Error(`GitHub Provider Error: ${error.message}`);
+            const errObj = error instanceof Error ? error : new Error(String(error));
+            await registry.reportModelFailure(this.id, modelId, errObj);
+            const msg = error instanceof Error ? error.message : String(error);
+            throw new Error(`GitHub Provider Error: ${msg}`);
         }
     }
 }

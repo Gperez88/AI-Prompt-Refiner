@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { randomBytes } from 'crypto';
 import { ConfigurationManager } from '../services/ConfigurationManager';
 import { logger } from '../services/Logger';
 import { InputValidator } from '../utils/ErrorHandler';
@@ -27,7 +28,7 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
 
         this._updateHtml();
 
-        webviewView.webview.onDidReceiveMessage(async (data) => {
+        const messageDisposable = webviewView.webview.onDidReceiveMessage(async (data) => {
             const config = ConfigurationManager.getInstance();
             switch (data.type) {
             case 'saveSettings': {
@@ -81,14 +82,18 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
             }
             }
         });
+        webviewView.onDidDispose(() => {
+            messageDisposable.dispose();
+        });
     }
 
     private async _updateHtml() {
         if (!this._view) return;
-        this._view.webview.html = await this._getHtmlForWebview(this._view.webview);
+        const nonce = randomBytes(16).toString('base64');
+        this._view.webview.html = await this._getHtmlForWebview(this._view.webview, nonce);
     }
 
-    private async _getHtmlForWebview(webview: vscode.Webview) {
+    private async _getHtmlForWebview(webview: vscode.Webview, nonce: string) {
         const config = ConfigurationManager.getInstance();
         const currentProvider = config.getProviderId();
         const currentModel = config.getModelId();
@@ -139,10 +144,19 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
             ]
         };
 
+        const csp = [
+            "default-src 'none'",
+            `style-src 'unsafe-inline' ${webview.cspSource}`,
+            `img-src ${webview.cspSource} https: data:`,
+            `font-src ${webview.cspSource}`,
+            `script-src 'nonce-${nonce}'`,
+        ].join('; ');
+
         return `<!DOCTYPE html>
             <html lang="en">
             <head>
                 <meta charset="UTF-8">
+                <meta http-equiv="Content-Security-Policy" content="${csp}">
                 <style>
                     body {
                         font-family: var(--vscode-font-family);
@@ -323,7 +337,7 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
                 <button id="save-btn">${t('save')}</button>
                 <div id="message-area"></div>
 
-                <script>
+                <script nonce="${nonce}">
                     const vscode = acquireVsCodeApi();
                     const modelsByProvider = ${JSON.stringify(modelsByProvider)};
                     

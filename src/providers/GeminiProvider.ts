@@ -1,7 +1,8 @@
-import { IAIProvider, ProviderMeta } from './IAIProvider';
+import { IAIProvider, ProviderMeta, RefineCallOptions } from './IAIProvider';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { ConfigurationManager } from '../services/ConfigurationManager';
 import { promptForApiKey } from '../commands/settingsCommands';
+import { isAbortOrUserCancellation } from '../utils/cancellationAbort';
 
 export class GeminiProvider implements IAIProvider {
     readonly id = 'gemini';
@@ -12,7 +13,7 @@ export class GeminiProvider implements IAIProvider {
         return true;
     }
 
-    async refine(userPrompt: string, systemTemplate: string, options?: { strict?: boolean; temperature?: number }): Promise<string> {
+    async refine(userPrompt: string, systemTemplate: string, options?: RefineCallOptions): Promise<string> {
         const config = ConfigurationManager.getInstance();
         const apiKey = await config.getApiKey(this.id);
 
@@ -23,13 +24,19 @@ export class GeminiProvider implements IAIProvider {
             if (!keyAfterPrompt) {
                 throw new Error('API Key is required to use Google Gemini.');
             }
-            return this.executeRefinement(keyAfterPrompt, userPrompt, systemTemplate, config.getModelId());
+            return this.executeRefinement(keyAfterPrompt, userPrompt, systemTemplate, config.getModelId(), options);
         }
 
-        return this.executeRefinement(apiKey, userPrompt, systemTemplate, config.getModelId());
+        return this.executeRefinement(apiKey, userPrompt, systemTemplate, config.getModelId(), options);
     }
 
-    private async executeRefinement(apiKey: string, userPrompt: string, systemPrompt: string, modelId: string): Promise<string> {
+    private async executeRefinement(
+        apiKey: string,
+        userPrompt: string,
+        systemPrompt: string,
+        modelId: string,
+        options?: RefineCallOptions,
+    ): Promise<string> {
         try {
             const genAI = new GoogleGenerativeAI(apiKey);
             const model = genAI.getGenerativeModel({
@@ -37,13 +44,17 @@ export class GeminiProvider implements IAIProvider {
                 systemInstruction: systemPrompt
             });
 
-            const result = await model.generateContent(userPrompt);
+            const reqOpts = options?.signal ? { signal: options.signal } : undefined;
+            const result = await model.generateContent(userPrompt, reqOpts);
             const response = await result.response;
             return response.text();
 
-        } catch (error: any) {
+        } catch (error: unknown) {
+            if (isAbortOrUserCancellation(error)) {
+                throw new Error('Operation cancelled');
+            }
             // Handle specific Gemini errors
-            const errorMessage = error.message || '';
+            const errorMessage = error instanceof Error ? error.message : String(error);
             
             // Detect quota exceeded errors (429)
             if (errorMessage.includes('429') || 
@@ -87,7 +98,7 @@ export class GeminiProvider implements IAIProvider {
             }
             
             // Default error with original message
-            throw new Error(`Gemini Error: ${error.message}`);
+            throw new Error(`Gemini Error: ${errorMessage}`);
         }
     }
 }

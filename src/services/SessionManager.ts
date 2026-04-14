@@ -82,6 +82,11 @@ const STORAGE_KEY = 'promptRefiner.chatSessions';
 const STORAGE_KEY_LEGACY = 'promptRefiner.chatHistory';
 const CURRENT_STORAGE_VERSION = 2;
 
+/** Limits for untrusted import payloads */
+const MAX_IMPORT_MESSAGES = 3000;
+const MAX_IMPORT_MESSAGE_CONTENT = 120_000;
+const MAX_IMPORT_SESSION_NAME_LENGTH = 256;
+
 /**
  * Manages multiple chat sessions with persistence in VSCode globalState
  */
@@ -627,25 +632,73 @@ export class SessionManager {
      */
     public async importSession(jsonString: string): Promise<ChatSession> {
         try {
-            const data = JSON.parse(jsonString);
+            const data = JSON.parse(jsonString) as { session?: Record<string, unknown> };
             
             // Validate structure
-            if (!data.session || !data.session.name || !Array.isArray(data.session.messages)) {
+            if (!data.session || typeof data.session.name !== 'string' || !Array.isArray(data.session.messages)) {
                 throw new Error('Invalid session format');
             }
 
-            // Create new session with imported data
+            const rawMessages = data.session.messages as unknown[];
+            if (rawMessages.length > MAX_IMPORT_MESSAGES) {
+                throw new Error(`Too many messages to import (max ${MAX_IMPORT_MESSAGES})`);
+            }
+
+            const messages: ChatMessage[] = [];
+            for (const raw of rawMessages) {
+                if (!raw || typeof raw !== 'object') {
+                    continue;
+                }
+                const m = raw as Record<string, unknown>;
+                const role = m.role;
+                if (role !== 'user' && role !== 'assistant' && role !== 'error') {
+                    continue;
+                }
+                let content = typeof m.content === 'string' ? m.content : String(m.content ?? '');
+                if (content.length > MAX_IMPORT_MESSAGE_CONTENT) {
+                    content = content.slice(0, MAX_IMPORT_MESSAGE_CONTENT);
+                }
+                const ts = typeof m.timestamp === 'number' && Number.isFinite(m.timestamp) ? m.timestamp : Date.now();
+                messages.push({
+                    id: this.generateId(),
+                    role,
+                    content,
+                    timestamp: ts,
+                    provider: typeof m.provider === 'string' ? m.provider : undefined,
+                    model: typeof m.model === 'string' ? m.model : undefined,
+                });
+            }
+
+            const rawMeta = data.session.metadata as Record<string, unknown> | undefined;
+            const roleCandidate = rawMeta?.role;
+            const metadata: SessionMetadata = {
+                messageCount: messages.length,
+                lastMessagePreview: messages.length > 0
+                    ? messages[messages.length - 1].content.slice(0, 200)
+                    : undefined,
+                provider: typeof rawMeta?.provider === 'string' ? rawMeta.provider : undefined,
+                model: typeof rawMeta?.model === 'string' ? rawMeta.model : undefined,
+                tags: Array.isArray(rawMeta?.tags)
+                    ? rawMeta.tags.filter((t): t is string => typeof t === 'string').slice(0, 20)
+                    : undefined,
+                isArchived: false,
+                role: typeof roleCandidate === 'string' && isValidRoleId(roleCandidate) ? roleCandidate : undefined,
+            };
+
+            let name = data.session.name.trim().slice(0, MAX_IMPORT_SESSION_NAME_LENGTH);
+            if (!name) {
+                name = 'Imported session';
+            }
+
             const now = Date.now();
             const importedSession: ChatSession = {
-                ...data.session,
-                id: this.generateId(), // Generate new ID to avoid conflicts
+                id: this.generateId(),
+                name,
                 createdAt: now,
                 updatedAt: now,
-                isActive: false, // Don't auto-activate imported sessions
-                metadata: {
-                    ...data.session.metadata,
-                    isArchived: false,
-                },
+                messages,
+                isActive: false,
+                metadata,
             };
 
             this.storage.sessions.push(importedSession);

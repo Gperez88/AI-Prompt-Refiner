@@ -1,4 +1,5 @@
-import { IAIProvider } from './IAIProvider';
+import { IAIProvider, RefineCallOptions } from './IAIProvider';
+import { isAbortOrUserCancellation } from '../utils/cancellationAbort';
 import { ConfigurationManager } from '../services/ConfigurationManager';
 
 /**
@@ -21,7 +22,7 @@ export class AnthropicProvider implements IAIProvider {
     async refine(
         userPrompt: string,
         systemTemplate: string,
-        options?: { strict?: boolean; temperature?: number }
+        options?: RefineCallOptions
     ): Promise<string> {
         const config = ConfigurationManager.getInstance();
         const apiKey = await config.getApiKey(this.id);
@@ -53,6 +54,7 @@ export class AnthropicProvider implements IAIProvider {
                         },
                     ],
                 }),
+                signal: options?.signal,
             });
 
             if (!response.ok) {
@@ -67,8 +69,12 @@ export class AnthropicProvider implements IAIProvider {
             }
 
             throw new Error('Empty response from Anthropic API');
-        } catch (error: any) {
-            throw new Error(`Anthropic refinement failed: ${error.message}`);
+        } catch (error: unknown) {
+            if (isAbortOrUserCancellation(error)) {
+                throw new Error('Operation cancelled');
+            }
+            const msg = error instanceof Error ? error.message : String(error);
+            throw new Error(`Anthropic refinement failed: ${msg}`);
         }
     }
 

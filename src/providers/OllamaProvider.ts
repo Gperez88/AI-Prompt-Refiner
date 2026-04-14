@@ -1,4 +1,5 @@
-import { IAIProvider } from './IAIProvider';
+import { IAIProvider, RefineCallOptions } from './IAIProvider';
+import { isAbortOrUserCancellation } from '../utils/cancellationAbort';
 import { ConfigurationManager } from '../services/ConfigurationManager';
 // using global fetch available in VS Code extension host
 
@@ -13,7 +14,7 @@ export class OllamaProvider implements IAIProvider {
     /**
      * Refines the user prompt using local Ollama instance.
      */
-    async refine(userPrompt: string, systemTemplate: string, options?: { strict?: boolean; temperature?: number }): Promise<string> {
+    async refine(userPrompt: string, systemTemplate: string, options?: RefineCallOptions): Promise<string> {
         const config = ConfigurationManager.getInstance();
         const endpoint = this.sanitizeEndpoint(config.getOllamaEndpoint());
         const modelId = this.getEffectiveModelId(config.getModelId());
@@ -30,14 +31,21 @@ export class OllamaProvider implements IAIProvider {
 
             // Try first with /api/chat (recommended for chat models)
             try {
-                return await this.fetchChatResponse(endpoint, modelId, fullPrompt, temperature);
-            } catch (chatError: any) {
-                console.warn(`Ollama /api/chat failed, retrying with /api/generate: ${chatError.message}`);
+                return await this.fetchChatResponse(endpoint, modelId, fullPrompt, temperature, options?.signal);
+            } catch (chatError: unknown) {
+                if (isAbortOrUserCancellation(chatError)) {
+                    throw new Error('Operation cancelled');
+                }
+                const chatMsg = chatError instanceof Error ? chatError.message : String(chatError);
+                console.warn(`Ollama /api/chat failed, retrying with /api/generate: ${chatMsg}`);
                 // Fallback to /api/generate
-                return await this.fetchGenerateResponse(endpoint, modelId, fullPrompt, temperature);
+                return await this.fetchGenerateResponse(endpoint, modelId, fullPrompt, temperature, options?.signal);
             }
 
-        } catch (error: any) {
+        } catch (error: unknown) {
+            if (isAbortOrUserCancellation(error)) {
+                throw new Error('Operation cancelled');
+            }
             return this.handleError(error, endpoint, modelId);
         }
     }
@@ -90,15 +98,16 @@ export class OllamaProvider implements IAIProvider {
     /**
      * Makes a generic request to the Ollama API.
      */
-    private async fetchOllama(endpoint: string, apiPath: string, body: any): Promise<any> {
+    private async fetchOllama(endpoint: string, apiPath: string, body: unknown, signal?: AbortSignal): Promise<unknown> {
         const response = await fetch(`${endpoint}${apiPath}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
+            body: JSON.stringify(body),
+            signal,
         });
 
         if (response.status === 404 && apiPath === '/api/generate') {
-            await this.validateModelExists(endpoint, body.model);
+            await this.validateModelExists(endpoint, (body as { model?: string }).model || '', signal);
         }
 
         if (!response.ok) {
@@ -112,13 +121,19 @@ export class OllamaProvider implements IAIProvider {
     /**
      * Makes a request to the /api/chat endpoint.
      */
-    private async fetchChatResponse(endpoint: string, model: string, prompt: string, temperature: number): Promise<string> {
+    private async fetchChatResponse(
+        endpoint: string,
+        model: string,
+        prompt: string,
+        temperature: number,
+        signal?: AbortSignal,
+    ): Promise<string> {
         const data = await this.fetchOllama(endpoint, '/api/chat', {
             model,
             messages: [{ role: 'user', content: prompt }],
             stream: false,
             options: { temperature }
-        }) as { message: { content: string } };
+        }, signal) as { message: { content: string } };
 
         return data.message.content;
     }
@@ -126,13 +141,19 @@ export class OllamaProvider implements IAIProvider {
     /**
      * Makes a request to the /api/generate endpoint.
      */
-    private async fetchGenerateResponse(endpoint: string, model: string, prompt: string, temperature: number): Promise<string> {
+    private async fetchGenerateResponse(
+        endpoint: string,
+        model: string,
+        prompt: string,
+        temperature: number,
+        signal?: AbortSignal,
+    ): Promise<string> {
         const data = await this.fetchOllama(endpoint, '/api/generate', {
             model,
             prompt,
             stream: false,
             options: { temperature }
-        }) as { response: string };
+        }, signal) as { response: string };
 
         return data.response;
     }
@@ -140,8 +161,8 @@ export class OllamaProvider implements IAIProvider {
     /**
      * Validates if the model exists by querying /api/tags.
      */
-    private async validateModelExists(endpoint: string, modelId: string): Promise<void> {
-        const tagsResponse = await fetch(`${endpoint}/api/tags`).catch(() => null);
+    private async validateModelExists(endpoint: string, modelId: string, signal?: AbortSignal): Promise<void> {
+        const tagsResponse = await fetch(`${endpoint}/api/tags`, { signal }).catch(() => null);
         if (tagsResponse && tagsResponse.ok) {
             const tagsData = await tagsResponse.json() as { models: Array<{ name: string }> };
             const modelNames = (tagsData.models || []).map(m => m.name);
@@ -155,11 +176,12 @@ export class OllamaProvider implements IAIProvider {
     /**
      * Handles and formats connection errors.
      */
-    private handleError(error: any, endpoint: string, modelId: string): never {
-        if (error.message.includes('fetch failed') || error.message.includes('Connection refused')) {
+    private handleError(error: unknown, endpoint: string, modelId: string): never {
+        const msg = error instanceof Error ? error.message : String(error);
+        if (msg.includes('fetch failed') || msg.includes('Connection refused')) {
             throw new Error(`Could not connect to Ollama at ${endpoint}. Is Ollama running?`);
         }
-        throw new Error(`Ollama (${modelId}): ${error.message}`);
+        throw new Error(`Ollama (${modelId}): ${msg}`);
     }
 }
 
