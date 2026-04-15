@@ -1,4 +1,4 @@
-import { IAIProvider, RefineCallOptions } from './IAIProvider';
+import { IAIProvider, RefineCallOptions, RefineResult } from './IAIProvider';
 import OpenAI from 'openai';
 import { ConfigurationManager } from '../services/ConfigurationManager';
 import { getApiModelId } from '../utils/ModelMappings';
@@ -13,7 +13,7 @@ export class OpenAIProvider implements IAIProvider {
         return true;
     }
 
-    async refine(userPrompt: string, systemTemplate: string, options?: RefineCallOptions): Promise<string> {
+    async refine(userPrompt: string, systemTemplate: string, options?: RefineCallOptions): Promise<RefineResult> {
         const config = ConfigurationManager.getInstance();
         const apiKey = await config.getApiKey(this.id);
 
@@ -35,7 +35,7 @@ export class OpenAIProvider implements IAIProvider {
         systemPrompt: string,
         modelId: string,
         options?: RefineCallOptions,
-    ): Promise<string> {
+    ): Promise<RefineResult> {
         try {
             const openai = new OpenAI({
                 apiKey: apiKey,
@@ -57,7 +57,11 @@ export class OpenAIProvider implements IAIProvider {
                 reqOptions,
             );
 
-            return response.choices[0].message.content || '';
+            const refined = response.choices[0].message.content || '';
+            const usage = response.usage;
+            const tokens = (usage?.prompt_tokens || 0) + (usage?.completion_tokens || 0);
+
+            return { refined, tokens };
         } catch (error: unknown) {
             if (isAbortOrUserCancellation(error)) {
                 throw new Error('Operation cancelled');

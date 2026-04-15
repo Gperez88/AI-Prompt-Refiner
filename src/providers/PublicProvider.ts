@@ -1,4 +1,4 @@
-import { IAIProvider, RefineCallOptions } from './IAIProvider';
+import { IAIProvider, RefineCallOptions, RefineResult } from './IAIProvider';
 import { ConfigurationManager } from '../services/ConfigurationManager';
 import { isAbortOrUserCancellation } from '../utils/cancellationAbort';
 
@@ -14,7 +14,7 @@ export class PublicProvider implements IAIProvider {
         return true; // Always configured as it's public
     }
 
-    async refine(userPrompt: string, systemTemplate: string, options?: RefineCallOptions): Promise<string> {
+    async refine(userPrompt: string, systemTemplate: string, options?: RefineCallOptions): Promise<RefineResult> {
         const config = ConfigurationManager.getInstance();
         const modelId = config.getModelId();
 
@@ -25,7 +25,9 @@ export class PublicProvider implements IAIProvider {
 
         try {
             // Attempt DuckDuckGo AI first
-            return await this.refineDuckDuckGo(userPrompt, systemTemplate, modelId, options?.signal);
+            const refined = await this.refineDuckDuckGo(userPrompt, systemTemplate, modelId, options?.signal);
+            const tokens = Math.ceil(refined.length / 3.5);
+            return { refined, tokens };
         } catch (ddgError: unknown) {
             if (isAbortOrUserCancellation(ddgError)) {
                 throw new Error('Operation cancelled');
@@ -35,7 +37,9 @@ export class PublicProvider implements IAIProvider {
             
             try {
                 // Fallback to HuggingFace Router (which sometimes works for public models if they aren't rate limited)
-                return await this.refineHuggingFace(userPrompt, systemTemplate, 'mistralai/Mistral-7B-Instruct-v0.3', options?.signal);
+                const refined = await this.refineHuggingFace(userPrompt, systemTemplate, 'mistralai/Mistral-7B-Instruct-v0.3', options?.signal);
+                const tokens = Math.ceil(refined.length / 3.5);
+                return { refined, tokens };
             } catch (hfError: unknown) {
                 if (isAbortOrUserCancellation(hfError)) {
                     throw new Error('Operation cancelled');

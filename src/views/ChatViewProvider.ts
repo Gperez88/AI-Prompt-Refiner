@@ -238,7 +238,8 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             role: 'user',
             content: prompt,
             provider,
-            model
+            model,
+            tokens: 0
         });
 
         this._view?.webview.postMessage({
@@ -265,13 +266,15 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             const service = PromptRefinerService.getInstance();
             const result = await service.refine(prompt, refineCts.token);
             const refined = result.refined;
+            const tokens = result.tokens;
 
             // Add assistant message to session
             const assistantMessage = await this.sessionManager.addMessageToSession(activeSession.id, {
                 role: 'assistant',
                 content: refined,
                 provider,
-                model
+                model,
+                tokens
             });
 
             this._view?.webview.postMessage({
@@ -297,7 +300,8 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                 role: 'error',
                 content: errorInfo.userMessage,
                 provider,
-                model
+                model,
+                tokens: 0
             });
 
             this._view?.webview.postMessage({
@@ -1443,8 +1447,9 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
 
         .message-header {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-start;
             align-items: center;
+            gap: 10px;
             margin-bottom: 6px;
             font-size: 11px;
             opacity: 0.7;
@@ -1455,8 +1460,14 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             text-transform: capitalize;
         }
 
+        .token-count {
+            font-size: 10px;
+            color: var(--vscode-descriptionForeground);
+        }
+
         .message-time {
             font-size: 10px;
+            margin-left: auto;
         }
 
         .message-content {
@@ -2115,9 +2126,13 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                     </div>
                 \`;
             } else {
+                // Format token count with commas
+                const tokensStr = message.tokens ? message.tokens.toLocaleString() : null;
+                
                 div.innerHTML = \`
                     <div class="message-header">
                         <span class="message-role">\${message.role}</span>
+                        \${tokensStr ? \`<span class="token-count">\${tokensStr} tokens</span>\` : ''}
                         <span class="message-time">\${timeStr}</span>
                     </div>
                     <div class="message-content">\${escapeHtml(message.content)}</div>

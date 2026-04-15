@@ -12,6 +12,12 @@ export interface RefineCallOptions {
     signal?: AbortSignal;
 }
 
+/** Return type for provider refine() method - includes token count for display */
+export interface RefineResult {
+    refined: string;
+    tokens: number;
+}
+
 export interface IAIProvider {
     readonly id: string;
     readonly name: string;
@@ -31,5 +37,5 @@ export interface IAIProvider {
         userPrompt: string,
         systemTemplate: string,
         options?: RefineCallOptions
-    ): Promise<string>;
+    ): Promise<RefineResult>;
 }

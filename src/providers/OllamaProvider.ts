@@ -1,4 +1,4 @@
-import { IAIProvider, RefineCallOptions } from './IAIProvider';
+import { IAIProvider, RefineCallOptions, RefineResult } from './IAIProvider';
 import { isAbortOrUserCancellation } from '../utils/cancellationAbort';
 import { ConfigurationManager } from '../services/ConfigurationManager';
 import { listOllamaModelTags } from '../utils/ollamaTags';
@@ -15,7 +15,7 @@ export class OllamaProvider implements IAIProvider {
     /**
      * Refines the user prompt using local Ollama instance.
      */
-    async refine(userPrompt: string, systemTemplate: string, options?: RefineCallOptions): Promise<string> {
+    async refine(userPrompt: string, systemTemplate: string, options?: RefineCallOptions): Promise<RefineResult> {
         const config = ConfigurationManager.getInstance();
         const endpoint = this.sanitizeEndpoint(config.getOllamaEndpoint());
 
@@ -32,8 +32,9 @@ export class OllamaProvider implements IAIProvider {
             console.log(`Ollama Request to ${endpoint} with model ${modelId} (temp: ${temperature})`);
 
             // Try first with /api/chat (recommended for chat models)
+            let refined: string;
             try {
-                return await this.fetchChatResponse(endpoint, modelId, fullPrompt, temperature, options?.signal);
+                refined = await this.fetchChatResponse(endpoint, modelId, fullPrompt, temperature, options?.signal);
             } catch (chatError: unknown) {
                 if (isAbortOrUserCancellation(chatError)) {
                     throw new Error('Operation cancelled');
@@ -41,8 +42,12 @@ export class OllamaProvider implements IAIProvider {
                 const chatMsg = chatError instanceof Error ? chatError.message : String(chatError);
                 console.warn(`Ollama /api/chat failed, retrying with /api/generate: ${chatMsg}`);
                 // Fallback to /api/generate
-                return await this.fetchGenerateResponse(endpoint, modelId, fullPrompt, temperature, options?.signal);
+                refined = await this.fetchGenerateResponse(endpoint, modelId, fullPrompt, temperature, options?.signal);
             }
+
+            // Ollama doesn't provide token counts - use heuristic estimate
+            const tokens = Math.ceil(refined.length / 3.5);
+            return { refined, tokens };
 
         } catch (error: unknown) {
             if (isAbortOrUserCancellation(error)) {
@@ -202,7 +207,7 @@ export class OllamaProvider implements IAIProvider {
     /**
      * Handles and formats connection errors.
      */
-    private handleError(error: unknown, endpoint: string, modelId: string): never {
+    private handleError(error: unknown, endpoint: string, modelId: string): RefineResult {
         const msg = error instanceof Error ? error.message : String(error);
         if (msg.includes('fetch failed') || msg.includes('Connection refused')) {
             throw new Error(`Could not connect to Ollama at ${endpoint}. Is Ollama running?`);

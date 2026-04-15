@@ -13,6 +13,7 @@ export interface ChatMessage {
     timestamp: number;
     provider?: string;
     model?: string;
+    tokens?: number;
 }
 
 /**

@@ -1,4 +1,4 @@
-import { IAIProvider, RefineCallOptions } from './IAIProvider';
+import { IAIProvider, RefineCallOptions, RefineResult } from './IAIProvider';
 
 export class MockProvider implements IAIProvider {
     readonly id = 'mock';
@@ -8,7 +8,7 @@ export class MockProvider implements IAIProvider {
         return true;
     }
 
-    async refine(userPrompt: string, systemTemplate: string, options?: RefineCallOptions): Promise<string> {
+    async refine(userPrompt: string, systemTemplate: string, options?: RefineCallOptions): Promise<RefineResult> {
         const signal = options?.signal;
         await new Promise<void>((resolve, reject) => {
             if (signal?.aborted) {
@@ -22,7 +22,7 @@ export class MockProvider implements IAIProvider {
             }, { once: true });
         });
 
-        return `[MOCK REFINEMENT]
+        const refined = `[MOCK REFINEMENT]
 Refined version of: "${userPrompt}"
 
 [Objective]
@@ -38,5 +38,7 @@ Using Mock Provider.
 [Expected Output]
 A demonstrated refined prompt structure.
 `;
+        const tokens = Math.ceil(refined.length / 3.5);
+        return { refined, tokens };
     }
 }

@@ -1,4 +1,4 @@
-import { IAIProvider, RefineCallOptions } from './IAIProvider';
+import { IAIProvider, RefineCallOptions, RefineResult } from './IAIProvider';
 import { isAbortOrUserCancellation } from '../utils/cancellationAbort';
 import { ConfigurationManager } from '../services/ConfigurationManager';
 import { promptForApiKey } from '../commands/settingsCommands';
@@ -11,7 +11,7 @@ export class HuggingFaceProvider implements IAIProvider {
         return true;
     }
 
-    async refine(userPrompt: string, systemTemplate: string, options?: RefineCallOptions): Promise<string> {
+    async refine(userPrompt: string, systemTemplate: string, options?: RefineCallOptions): Promise<RefineResult> {
         const config = ConfigurationManager.getInstance();
         const apiKey = await config.getApiKey(this.id);
 
@@ -33,7 +33,7 @@ export class HuggingFaceProvider implements IAIProvider {
         systemPrompt: string,
         modelId: string,
         options?: RefineCallOptions,
-    ): Promise<string> {
+    ): Promise<RefineResult> {
         try {
             // Default model if none selected or incompatible
             let effModelId = modelId;
@@ -65,13 +65,18 @@ export class HuggingFaceProvider implements IAIProvider {
             const result = await response.json() as any;
 
             // HF Inference API returns an array, usually with 'generated_text'
+            let refined: string;
             if (Array.isArray(result) && result.length > 0) {
-                return result[0].generated_text || '';
+                refined = result[0].generated_text || '';
             } else if (result.generated_text) {
-                return result.generated_text;
+                refined = result.generated_text;
+            } else {
+                refined = JSON.stringify(result);
             }
 
-            return JSON.stringify(result);
+            // HuggingFace doesn't provide token counts - use heuristic estimate
+            const tokens = Math.ceil(refined.length / 3.5);
+            return { refined, tokens };
 
         } catch (error: unknown) {
             if (isAbortOrUserCancellation(error)) {

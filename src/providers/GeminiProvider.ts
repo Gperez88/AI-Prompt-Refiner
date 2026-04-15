@@ -1,4 +1,4 @@
-import { IAIProvider, RefineCallOptions } from './IAIProvider';
+import { IAIProvider, RefineCallOptions, RefineResult } from './IAIProvider';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { ConfigurationManager } from '../services/ConfigurationManager';
 import { getApiModelId } from '../utils/ModelMappings';
@@ -14,7 +14,7 @@ export class GeminiProvider implements IAIProvider {
         return true;
     }
 
-    async refine(userPrompt: string, systemTemplate: string, options?: RefineCallOptions): Promise<string> {
+    async refine(userPrompt: string, systemTemplate: string, options?: RefineCallOptions): Promise<RefineResult> {
         const config = ConfigurationManager.getInstance();
         const apiKey = await config.getApiKey(this.id);
 
@@ -37,7 +37,7 @@ export class GeminiProvider implements IAIProvider {
         systemPrompt: string,
         modelId: string,
         options?: RefineCallOptions,
-    ): Promise<string> {
+    ): Promise<RefineResult> {
         try {
             const genAI = new GoogleGenerativeAI(apiKey);
             const apiModelId = getApiModelId(modelId, this.id) ?? modelId;
@@ -49,7 +49,13 @@ export class GeminiProvider implements IAIProvider {
             const reqOpts = options?.signal ? { signal: options.signal } : undefined;
             const result = await model.generateContent(userPrompt, reqOpts);
             const response = await result.response;
-            return response.text();
+            const refined = response.text();
+            
+            // Extract token count from usage metadata
+            const usageMetadata = response.usageMetadata;
+            const tokens = usageMetadata?.totalTokenCount || Math.ceil(refined.length / 3.5);
+
+            return { refined, tokens };
 
         } catch (error: unknown) {
             if (isAbortOrUserCancellation(error)) {

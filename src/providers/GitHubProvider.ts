@@ -1,8 +1,13 @@
-import { IAIProvider, RefineCallOptions } from './IAIProvider';
+import { IAIProvider, RefineCallOptions, RefineResult } from './IAIProvider';
 import { ConfigurationManager } from '../services/ConfigurationManager';
 import { ModelRegistry } from '../services/ModelRegistry';
 import { getApiModelId } from '../utils/ModelMappings';
 import { isAbortOrUserCancellation } from '../utils/cancellationAbort';
+
+interface ChatCompletionsResponse {
+    choices: { message: { content: string } }[];
+    usage?: { prompt_tokens: number; completion_tokens: number };
+}
 
 /**
  * GitHubProvider integrates with GitHub Marketplace models.
@@ -17,7 +22,7 @@ export class GitHubProvider implements IAIProvider {
         return true;
     }
 
-    async refine(userPrompt: string, systemTemplate: string, options?: RefineCallOptions): Promise<string> {
+    async refine(userPrompt: string, systemTemplate: string, options?: RefineCallOptions): Promise<RefineResult> {
         const config = ConfigurationManager.getInstance();
         const apiKey = await config.getApiKey(this.id);
         // Registry + settings options use UI IDs (e.g. github-gpt-4o); getModelId() returns API IDs for calls.
@@ -71,11 +76,14 @@ export class GitHubProvider implements IAIProvider {
                 throw new Error(`GitHub API Error (${response.status}): ${errorBody}`);
             }
 
-            const data = await response.json() as any;
+            const data = await response.json() as ChatCompletionsResponse;
             if (data.choices && data.choices.length > 0) {
                 // Report success to ModelRegistry for telemetry
                 await registry.reportModelSuccess(this.id, uiModelId);
-                return data.choices[0].message.content;
+                const refined = data.choices[0].message.content;
+                const usage = data.usage;
+                const tokens = (usage?.prompt_tokens || 0) + (usage?.completion_tokens || 0);
+                return { refined, tokens };
             }
 
             throw new Error('No content returned from GitHub Marketplace.');

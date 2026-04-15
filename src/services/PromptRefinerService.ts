@@ -24,6 +24,7 @@ export interface RefinementOptions {
 
 export interface RefinementResult {
     refined: string;
+    tokens: number;
     validation?: ValidationResult;
     templateUsed: string;
     iteration: number;
@@ -123,8 +124,11 @@ export class PromptRefinerService implements IPromptRefinerService {
             if (options?.validateOutput !== false) {
                 validationResult = OutputValidator.validate(cached, isStrict);
             }
+            // Cached results don't have token count - use heuristic estimate
+            const cachedTokens = Math.ceil(cached.length / 3.5);
             return {
                 refined: cached,
+                tokens: cachedTokens,
                 validation: validationResult,
                 templateUsed: templateId,
                 iteration: options?.iteration || 1,
@@ -165,7 +169,7 @@ export class PromptRefinerService implements IPromptRefinerService {
 
         try {
             // Execute with circuit breaker and retry logic
-            const refined = await circuitBreaker.execute(async () => {
+            const providerResult = await circuitBreaker.execute(async () => {
                 return withRetry(async () => {
                     // Check cancellation before each attempt
                     if (token?.isCancellationRequested) {
@@ -179,6 +183,8 @@ export class PromptRefinerService implements IPromptRefinerService {
                     maxDelayMs: 10000,
                 });
             });
+
+            const { refined, tokens } = providerResult;
 
             // Store in cache
             refinementCache.set(cacheKey, refined);
@@ -198,7 +204,8 @@ export class PromptRefinerService implements IPromptRefinerService {
 
             logger.info('Refinement completed successfully', { 
                 score: validationResult?.score,
-                valid: validationResult?.valid 
+                valid: validationResult?.valid,
+                tokens 
             });
 
             // Track analytics
@@ -207,6 +214,7 @@ export class PromptRefinerService implements IPromptRefinerService {
 
             return {
                 refined,
+                tokens,
                 validation: validationResult,
                 templateUsed: templateId,
                 iteration: options?.iteration || 1,
