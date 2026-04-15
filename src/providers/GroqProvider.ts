@@ -55,7 +55,7 @@ function groqErrorSuggestsInvalidModel(detail: ReturnType<typeof groqFailureDeta
 
     const modelNeedles = [
         'the model `',
-        "the model '",
+        'the model \'',
         'the model "',
         'the model ',
         'invalid model',

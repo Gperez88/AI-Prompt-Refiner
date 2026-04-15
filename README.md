@@ -105,7 +105,7 @@ Choose from smart templates based on your task:
 
 ### 💬 AI-Powered Refinement
 
-- Works with **6 AI providers** (GitHub, OpenAI, Gemini, Groq, HuggingFace, Ollama)
+- Works with **5 AI providers** (GitHub, OpenAI, Gemini, Groq, Ollama)
 - Local AI support for privacy with Ollama
 - Premium providers for best results
 

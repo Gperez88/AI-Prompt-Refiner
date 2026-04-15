@@ -4,6 +4,53 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.4.0] - 2026-04-14
+
+### Added
+
+- **Token Count Display**
+  - Token count now always visible in message header (left side)
+  - Positioned between role and timestamp for better visibility
+  - No longer hidden behind hover interaction - always visible like the date
+  - Shows formatted numbers with locale commas (e.g., "1,234 tokens")
+
+### Changed
+
+- **UI Improvements**
+  - Message header layout updated: role → token count → time (left to right)
+  - Token count now part of the permanent header, not the hover actions
+  - Copy button remains in hover actions for cleaner UI
+
+### Infrastructure
+
+- **Structured Response Results**
+  - Refactor of refine methods across all AI providers
+  - Unified return type with token counts in response object
+  - Consistent token tracking across: GitHub, OpenAI, Gemini, Groq, Anthropic
+
+- **Prompt Templates**
+  - Streamlined prompt templates for various roles
+  - Updated structure and clarity in role-specific templates
+  - Improved template handling in PromptRefinerService
+
+- **Model Registry Enhancements**
+  - Improved model ID resolution across providers
+  - Enhanced error handling for model mapping
+  - Better fallback logic for deprecated models
+
+- **AI Provider Interface Refactoring**
+  - Added `RefineCallOptions` interface for improved signal handling
+  - Better cancellation support during prompt refinement
+  - Standardized request options across all providers
+
+### Developer Experience
+
+- **Extension Improvements**
+  - Enhanced error handling in extension.ts
+  - Improved async file operations in tests using fs.promises
+
+---
+
 ## [1.3.0] - 2026-02-04
 
 ### Added
