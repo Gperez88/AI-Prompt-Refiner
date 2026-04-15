@@ -1,0 +1,51 @@
+# Fuente y documentación interna del repo
+src/**
+openspec/**
+.github/**
+
+# Pruebas y configuración de desarrollo
+**/__tests__/**
+**/*.test.ts
+vitest.config.ts
+tsconfig.json
+.eslintrc.json
+scripts/**
+build.bat
+*.vsix
+.gitignore
+CONTRIBUTING.md
+
+# Mapas de fuente (menor VSIX, sin rutas locales en el cliente)
+**/*.map
+
+# Declaraciones TypeScript y metadatos en dependencias (runtime usa solo .js)
+node_modules/**/*.d.ts
+node_modules/**/*.d.ts.map
+node_modules/**/*.ts
+node_modules/**/.github/**
+node_modules/**/.eslintrc
+node_modules/**/.nycrc
+node_modules/**/tsconfig.json
+node_modules/**/*.md
+
+# Lockfile no usado en runtime de la extensión
+package-lock.json
+
+# Paquetes npm instalados solo como devDependencies (no borrar del disco local;
+# solo se excluyen del VSIX al empaquetar)
+node_modules/typescript/**
+node_modules/eslint/**
+node_modules/@eslint/**
+node_modules/@eslint-community/**
+node_modules/@typescript-eslint/**
+node_modules/vitest/**
+node_modules/mocha/**
+node_modules/@types/**
+node_modules/@vscode/test-electron/**
+node_modules/glob/**
+node_modules/.bin/**
+
+# Archivos de prueba y documentación dentro de dependencias (require sigue resolviendo .js)
+node_modules/**/test/**
+node_modules/**/tests/**
+node_modules/**/__tests__/**

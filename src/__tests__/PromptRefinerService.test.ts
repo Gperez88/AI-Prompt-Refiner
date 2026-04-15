@@ -16,9 +16,6 @@ vi.mock('../services/ConfigurationManager', () => ({
   }
 }));
 
-// Mock fs
-vi.mock('fs');
-
 describe('PromptRefinerService with DI', () => {
   let service: PromptRefinerService;
   let mockContext: any;
@@ -49,8 +46,8 @@ describe('PromptRefinerService with DI', () => {
       refine: vi.fn(),
     } as any;
     
-    // Setup default mock behavior
-    (mockProvider.refine as any).mockResolvedValue('refined result');
+    // Setup default mock behavior - return object with refined and tokens
+    (mockProvider.refine as any).mockResolvedValue({ refined: 'refined result', tokens: 50 });
 
     // Create mock provider manager
     mockProviderManager = {
@@ -103,7 +100,7 @@ describe('PromptRefinerService with DI', () => {
   describe('refine', () => {
     beforeEach(() => {
       service.initialize(mockContext);
-      vi.mocked(fs.readFileSync).mockReturnValue('template content');
+      vi.spyOn(fs.promises, 'readFile').mockResolvedValue('template content');
     });
 
     it('should call provider refine with correct parameters', async () => {
@@ -133,8 +130,9 @@ describe('PromptRefinerService with DI', () => {
       });
 
       // Mock strict mode by checking template file path
-      vi.mocked(fs.readFileSync).mockImplementation((path: any) => {
-        if (path.includes('strict')) {
+      vi.spyOn(fs.promises, 'readFile').mockImplementation(async (path: fs.PathLike) => {
+        const p = String(path);
+        if (p.includes('strict')) {
           return 'strict template';
         }
         return 'normal template';
@@ -143,14 +141,14 @@ describe('PromptRefinerService with DI', () => {
       await service.refine('user prompt');
 
       // Should try to read strict template
-      expect(fs.readFileSync).toHaveBeenCalledWith(
+      expect(fs.promises.readFile).toHaveBeenCalledWith(
         expect.stringContaining('strict'),
         'utf-8'
       );
     });
 
     it('should return refined result with metadata', async () => {
-      (mockProvider.refine as any).mockResolvedValue('improved prompt');
+      (mockProvider.refine as any).mockResolvedValue({ refined: 'improved prompt', tokens: 30 });
       
       const result = await service.refine('original prompt');
 
@@ -166,9 +164,7 @@ describe('PromptRefinerService with DI', () => {
     });
 
     it('should handle template loading errors', async () => {
-      vi.mocked(fs.readFileSync).mockImplementation(() => {
-        throw new Error('File not found');
-      });
+      vi.spyOn(fs.promises, 'readFile').mockRejectedValue(new Error('File not found'));
 
       await expect(service.refine('user prompt')).rejects.toThrow();
     });
@@ -185,9 +181,10 @@ describe('PromptRefinerService with DI', () => {
       });
 
       let callCount = 0;
-      vi.mocked(fs.readFileSync).mockImplementation((path: any) => {
+      vi.spyOn(fs.promises, 'readFile').mockImplementation(async (path: fs.PathLike) => {
         callCount++;
-        if (callCount === 1) {
+        const p = String(path);
+        if (callCount === 1 && p.includes('dist')) {
           throw new Error('Dist path failed');
         }
         return 'template content';
@@ -195,12 +192,12 @@ describe('PromptRefinerService with DI', () => {
 
       await service.refine('user prompt');
 
-      expect(fs.readFileSync).toHaveBeenNthCalledWith(
+      expect(fs.promises.readFile).toHaveBeenNthCalledWith(
         1,
         expect.stringContaining('dist'),
         'utf-8'
       );
-      expect(fs.readFileSync).toHaveBeenNthCalledWith(
+      expect(fs.promises.readFile).toHaveBeenNthCalledWith(
         2,
         expect.stringContaining('src'),
         'utf-8'
@@ -227,7 +224,7 @@ describe('PromptRefinerService with DI', () => {
       });
 
       service.initialize(mockContext);
-      vi.mocked(fs.readFileSync).mockReturnValue('template');
+      vi.spyOn(fs.promises, 'readFile').mockResolvedValue('template');
 
       await expect(service.refine('user prompt')).rejects.toThrow('Provider manager error');
     });
@@ -236,7 +233,7 @@ describe('PromptRefinerService with DI', () => {
   describe('Caching', () => {
     it('should cache results for identical prompts', async () => {
       service.initialize(mockContext);
-      vi.mocked(fs.readFileSync).mockReturnValue('template');
+      vi.spyOn(fs.promises, 'readFile').mockResolvedValue('template');
       
       // First call
       await service.refine('same prompt');

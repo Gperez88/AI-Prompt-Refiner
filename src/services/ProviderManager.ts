@@ -1,4 +1,3 @@
-import * as vscode from 'vscode';
 import { IAIProvider } from '../providers/IAIProvider';
 import { MockProvider } from '../providers/MockProvider';
 import { GeminiProvider } from '../providers/GeminiProvider';
@@ -79,7 +78,11 @@ export class ProviderManager implements IProviderManager {
         if (!provider) {
             // Fallback to Mock if config is invalid
             logger.warn(`Provider ${configId} not found. Falling back to Mock.`);
-            return this.getOrCreateProvider('mock')!;
+            const mock = this.getOrCreateProvider('mock');
+            if (!mock) {
+                throw new Error('Mock provider is not available');
+            }
+            return mock;
         }
 
         return provider;

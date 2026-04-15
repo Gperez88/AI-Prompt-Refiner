@@ -24,6 +24,9 @@ export interface ErrorInfo {
 /**
  * ErrorHandler provides centralized error classification and user-friendly messages
  */
+/** Prefixes emitted by providers (e.g. `QUOTA_EXCEEDED|human text`). */
+const PIPE_PREFIX_PATTERN = /^([A-Za-z_]+)\|([\s\S]*)$/;
+
 export class ErrorHandler {
     /**
      * Classify an error and provide user-friendly information
@@ -31,7 +34,48 @@ export class ErrorHandler {
      * @returns Error information with type, message, and action
      */
     public static classifyError(error: Error): ErrorInfo {
-        const message = error.message.toLowerCase();
+        const raw = error.message;
+        const message = raw.toLowerCase();
+
+        const piped = raw.match(PIPE_PREFIX_PATTERN);
+        if (piped) {
+            const code = piped[1].toUpperCase();
+            const rest = piped[2].trim();
+            const body = rest.length > 0 ? rest : raw;
+
+            if (code === 'QUOTA_EXCEEDED' || code === 'RATE_LIMIT') {
+                return {
+                    type: ErrorType.RATE_LIMIT,
+                    userMessage: body,
+                    action: 'Switch Model',
+                    shouldRetry: true,
+                };
+            }
+            if (code === 'AUTH_ERROR') {
+                return {
+                    type: ErrorType.AUTHENTICATION,
+                    userMessage: body,
+                    action: 'Set API Key',
+                    shouldRetry: false,
+                };
+            }
+            if (code === 'MODEL_ERROR' || code === 'INVALID_MODEL' || code === 'MODEL_DEPRECATED') {
+                return {
+                    type: ErrorType.PROVIDER_ERROR,
+                    userMessage: body,
+                    action: 'Switch Model',
+                    shouldRetry: code === 'MODEL_DEPRECATED' || code === 'INVALID_MODEL',
+                };
+            }
+            if (code === 'PROVIDER_ERROR') {
+                return {
+                    type: ErrorType.PROVIDER_ERROR,
+                    userMessage: body,
+                    action: 'View Logs',
+                    shouldRetry: true,
+                };
+            }
+        }
 
         // Network errors
         if (message.includes('fetch') || 
@@ -61,14 +105,23 @@ export class ErrorHandler {
             };
         }
 
-        // Rate limiting
-        if (message.includes('429') || 
+        // Rate limiting & quota (APIs use varied wording)
+        if (message.includes('429') ||
             message.includes('rate limit') ||
             message.includes('too many requests') ||
-            message.includes('418')) {
+            message.includes('too_many_requests') ||
+            message.includes('418') ||
+            message.includes('quota') ||
+            message.includes('quota exceeded') ||
+            message.includes('resource exhausted') ||
+            message.includes('resource_exhausted') ||
+            message.includes('capacity')) {
             return {
                 type: ErrorType.RATE_LIMIT,
-                userMessage: 'Rate limit exceeded. Please wait a moment and try again, or switch to a different model.',
+                userMessage:
+                    message.includes('quota') || message.includes('resource_exhausted') || message.includes('resource exhausted')
+                        ? 'API quota or rate limit reached. Wait before retrying, reduce usage, or switch model / plan. See your provider’s dashboard for limits.'
+                        : 'Rate limit exceeded. Please wait a moment and try again, or switch to a different model.',
                 action: 'Switch Model',
                 shouldRetry: true,
             };
@@ -86,10 +139,30 @@ export class ErrorHandler {
             };
         }
 
-        // Invalid input
-        if (message.includes('invalid') || 
-            message.includes('bad request') ||
-            message.includes('400')) {
+        // Provider rejected request shape (not the same as "bad prompt" — e.g. OpenAI invalid_request_error)
+        if (
+            message.includes('invalid_request_error') ||
+            message.includes('validation_error') ||
+            message.includes('invalid value') ||
+            (message.includes('bad request') && message.includes('400'))
+        ) {
+            return {
+                type: ErrorType.PROVIDER_ERROR,
+                userMessage:
+                    'The provider rejected this request (model name, parameters, or API format). Check settings and model; the prompt may be fine. Details: ' +
+                    raw.slice(0, 400) +
+                    (raw.length > 400 ? '…' : ''),
+                action: 'Switch Model',
+                shouldRetry: true,
+            };
+        }
+
+        // Likely true input / size issues (narrow — avoid matching "invalid_request_error" etc.)
+        if (
+            message.includes('invalid argument') ||
+            message.includes('malformed') ||
+            (message.includes('400') && message.includes('bad request') && !message.includes('invalid_request'))
+        ) {
             return {
                 type: ErrorType.INVALID_INPUT,
                 userMessage: 'Invalid input. Please check your prompt and try again.',

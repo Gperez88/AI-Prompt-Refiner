@@ -8,6 +8,7 @@ yarn-error.log*
 out/
 dist/
 *.tsbuildinfo
+*.js.map
 
 # VS Code
 .vscode-test/
@@ -24,3 +25,10 @@ Thumbs.db
 
 # Build artifacts
 *.log
+
+# coverage
+coverage/
+
+# sdd
+openspec/
+_*

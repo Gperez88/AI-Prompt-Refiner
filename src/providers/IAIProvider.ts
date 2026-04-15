@@ -4,6 +4,20 @@ export interface ProviderMeta {
     description?: string;
 }
 
+/** Options passed to {@link IAIProvider.refine} */
+export interface RefineCallOptions {
+    strict?: boolean;
+    temperature?: number;
+    /** When set, network requests should abort if the signal is triggered */
+    signal?: AbortSignal;
+}
+
+/** Return type for provider refine() method - includes token count for display */
+export interface RefineResult {
+    refined: string;
+    tokens: number;
+}
+
 export interface IAIProvider {
     readonly id: string;
     readonly name: string;
@@ -22,9 +36,6 @@ export interface IAIProvider {
     refine(
         userPrompt: string,
         systemTemplate: string,
-        options?: { 
-            strict?: boolean;
-            temperature?: number;
-        }
-    ): Promise<string>;
+        options?: RefineCallOptions
+    ): Promise<RefineResult>;
 }

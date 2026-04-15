@@ -1,4 +1,5 @@
 import { logger } from '../services/Logger';
+import { isAbortOrUserCancellation } from './cancellationAbort';
 
 /**
  * Circuit breaker states
@@ -76,7 +77,9 @@ export class CircuitBreaker {
             this.onSuccess();
             return result;
         } catch (error) {
-            this.onFailure();
+            if (!isAbortOrUserCancellation(error)) {
+                this.onFailure();
+            }
             throw error;
         }
     }
@@ -209,17 +212,16 @@ export const circuitBreakers: Map<string, CircuitBreaker> = new Map();
  * Get or create circuit breaker for a provider
  */
 export function getCircuitBreaker(providerId: string): CircuitBreaker {
-    if (!circuitBreakers.has(providerId)) {
-        circuitBreakers.set(
-            providerId,
-            new CircuitBreaker(providerId, {
-                failureThreshold: 3,
-                resetTimeoutMs: 30000, // 30 seconds
-                halfOpenMaxCalls: 2,
-            })
-        );
+    let breaker = circuitBreakers.get(providerId);
+    if (!breaker) {
+        breaker = new CircuitBreaker(providerId, {
+            failureThreshold: 3,
+            resetTimeoutMs: 30000, // 30 seconds
+            halfOpenMaxCalls: 2,
+        });
+        circuitBreakers.set(providerId, breaker);
     }
-    return circuitBreakers.get(providerId)!;
+    return breaker;
 }
 
 /**

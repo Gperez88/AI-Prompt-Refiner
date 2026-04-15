@@ -44,6 +44,13 @@ export class Analytics {
     }
 
     /**
+     * Release references (e.g. on extension deactivate / tests).
+     */
+    public dispose(): void {
+        this.context = undefined;
+    }
+
+    /**
      * Track when a session is created with a specific role
      */
     public trackSessionCreated(roleId: string, roleName: string): void {

@@ -195,10 +195,10 @@ export async function switchProviderCommand() {
             'groq': 'groq-llama3-70b',
             'huggingface': 'bigscience/bloom',
             'anthropic': 'claude-3-haiku',
-            'ollama': 'custom'
+            'ollama': 'ollama-custom'
         };
         
-        const defaultModel = defaultModels[selected.id] || 'custom';
+        const defaultModel = defaultModels[selected.id] || 'ollama-custom';
         await config.setModelId(defaultModel);
         
         vscode.window.showInformationMessage(`Switched to ${selected.label.replace('$(check) ', '')}`);

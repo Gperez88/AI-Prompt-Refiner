@@ -1,8 +1,13 @@
-import { IAIProvider } from './IAIProvider';
+import { IAIProvider, RefineCallOptions, RefineResult } from './IAIProvider';
 import { ConfigurationManager } from '../services/ConfigurationManager';
 import { ModelRegistry } from '../services/ModelRegistry';
-import { logger } from '../services/Logger';
 import { getApiModelId } from '../utils/ModelMappings';
+import { isAbortOrUserCancellation } from '../utils/cancellationAbort';
+
+interface ChatCompletionsResponse {
+    choices: { message: { content: string } }[];
+    usage?: { prompt_tokens: number; completion_tokens: number };
+}
 
 /**
  * GitHubProvider integrates with GitHub Marketplace models.
@@ -17,10 +22,11 @@ export class GitHubProvider implements IAIProvider {
         return true;
     }
 
-    async refine(userPrompt: string, systemTemplate: string, options?: { strict?: boolean; temperature?: number }): Promise<string> {
+    async refine(userPrompt: string, systemTemplate: string, options?: RefineCallOptions): Promise<RefineResult> {
         const config = ConfigurationManager.getInstance();
         const apiKey = await config.getApiKey(this.id);
-        const modelId = config.getModelId();
+        // Registry + settings options use UI IDs (e.g. github-gpt-4o); getModelId() returns API IDs for calls.
+        const uiModelId = config.getModelIdForUI();
         const registry = ModelRegistry.getInstance();
 
         if (!apiKey) {
@@ -28,20 +34,20 @@ export class GitHubProvider implements IAIProvider {
         }
 
         // Validate that the selected model is supported using ModelRegistry
-        const isValidModel = await registry.validateModel(this.id, modelId);
+        const isValidModel = await registry.validateModel(this.id, uiModelId);
         if (!isValidModel) {
             const supportedModels = await registry.getSupportedModels(this.id);
             const modelList = supportedModels.map(m => m.id).join(', ');
-            throw new Error(`Model "${modelId}" is not supported by GitHub Marketplace. Supported models: ${modelList}`);
+            throw new Error(`Model "${uiModelId}" is not supported by GitHub Marketplace. Supported models: ${modelList}`);
         }
 
         // GitHub Marketplace models usually follow OpenAI-compatible chat completions API
         const endpoint = 'https://models.inference.ai.azure.com/chat/completions';
         
         // Convert UI model ID to API model ID
-        const apiModelId = getApiModelId(modelId, this.id);
+        const apiModelId = getApiModelId(uiModelId, this.id);
         if (!apiModelId) {
-            throw new Error(`Unable to map model "${modelId}" to API model ID for ${this.id} provider`);
+            throw new Error(`Unable to map model "${uiModelId}" to API model ID for ${this.id} provider`);
         }
         const githubModel = apiModelId;
 
@@ -61,7 +67,8 @@ export class GitHubProvider implements IAIProvider {
                     temperature: options?.temperature ?? 0.3,
                     max_tokens: 4096,
                     top_p: 1
-                })
+                }),
+                signal: options?.signal,
             });
 
             if (!response.ok) {
@@ -69,21 +76,28 @@ export class GitHubProvider implements IAIProvider {
                 throw new Error(`GitHub API Error (${response.status}): ${errorBody}`);
             }
 
-            const data = await response.json() as any;
+            const data = await response.json() as ChatCompletionsResponse;
             if (data.choices && data.choices.length > 0) {
                 // Report success to ModelRegistry for telemetry
-                await registry.reportModelSuccess(this.id, modelId);
-                return data.choices[0].message.content;
+                await registry.reportModelSuccess(this.id, uiModelId);
+                const refined = data.choices[0].message.content;
+                const usage = data.usage;
+                const tokens = (usage?.prompt_tokens || 0) + (usage?.completion_tokens || 0);
+                return { refined, tokens };
             }
 
             throw new Error('No content returned from GitHub Marketplace.');
 
-        } catch (error: any) {
+        } catch (error: unknown) {
+            if (isAbortOrUserCancellation(error)) {
+                throw new Error('Operation cancelled');
+            }
             // Report failure to ModelRegistry for telemetry
             const registry = ModelRegistry.getInstance();
-            await registry.reportModelFailure(this.id, modelId, error);
-            
-            throw new Error(`GitHub Provider Error: ${error.message}`);
+            const errObj = error instanceof Error ? error : new Error(String(error));
+            await registry.reportModelFailure(this.id, uiModelId, errObj);
+            const msg = error instanceof Error ? error.message : String(error);
+            throw new Error(`GitHub Provider Error: ${msg}`);
         }
     }
 }

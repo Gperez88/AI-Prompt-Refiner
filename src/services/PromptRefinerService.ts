@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { IAIProvider } from '../providers/IAIProvider';
 import { IProviderManager } from './IProviderManager';
 import { ProviderManager } from './ProviderManager';
 import { ConfigurationManager } from './ConfigurationManager';
@@ -12,8 +11,14 @@ import { OutputValidator, ValidationResult } from '../utils/OutputValidator';
 import { LRUCache, refinementCache } from '../utils/Cache';
 import { getCircuitBreaker, CircuitBreakerError } from '../utils/CircuitBreaker';
 import { withRetry } from '../utils/Retry';
+import { linkCancellationToAbort } from '../utils/cancellationAbort';
 import { SessionManager } from './SessionManager';
-import { getRoleById, RoleId, DEFAULT_ROLE_ID } from '../types/Role';
+import {
+    getRoleById,
+    DEFAULT_ROLE_ID,
+    REFINER_OUTPUT_LANGUAGE_INSTRUCTION,
+    REFINER_OUTPUT_SCOPE_FOOTER,
+} from '../types/Role';
 import { Analytics } from './Analytics';
 
 export interface RefinementOptions {
@@ -24,6 +29,7 @@ export interface RefinementOptions {
 
 export interface RefinementResult {
     refined: string;
+    tokens: number;
     validation?: ValidationResult;
     templateUsed: string;
     iteration: number;
@@ -35,7 +41,7 @@ export interface IPromptRefinerService {
 }
 
 export class PromptRefinerService implements IPromptRefinerService {
-    private static instance: PromptRefinerService;
+    private static instance: PromptRefinerService | undefined;
     private providerManager: IProviderManager;
     private templateManager: TemplateManager;
     private context: vscode.ExtensionContext | undefined;
@@ -72,7 +78,7 @@ export class PromptRefinerService implements IPromptRefinerService {
      * Reset singleton instance (for testing)
      */
     public static resetInstance(): void {
-        PromptRefinerService.instance = undefined as any;
+        PromptRefinerService.instance = undefined;
     }
 
     public initialize(context: vscode.ExtensionContext) {
@@ -101,26 +107,42 @@ export class PromptRefinerService implements IPromptRefinerService {
             throw new Error('Operation cancelled');
         }
 
-        // Generate cache key
-        const providerId = ConfigurationManager.getInstance().getProviderId();
-        const modelId = ConfigurationManager.getInstance().getModelId();
+        const config = ConfigurationManager.getInstance();
+        const providerId = config.getProviderId();
+        const modelId = config.getModelId();
         const templateId = options?.templateId || 'default';
-        const isStrict = ConfigurationManager.getInstance().isStrictMode();
-        
+        const isStrict = config.isStrictMode();
+        const useRoleTemplates = config.getUseRoleTemplates();
+
+        const sessionManager = SessionManager.getInstance();
+        const activeSession = await sessionManager.getActiveSession();
+        const roleId = activeSession?.metadata?.role || DEFAULT_ROLE_ID;
+
+        // Cache must vary with role and role-template mode (system prompt + template body differ)
         const cacheKey = LRUCache.generateKey({
             prompt: userPrompt,
             provider: providerId,
             model: modelId,
             template: templateId,
             strict: isStrict,
+            roleId,
+            useRoleTemplates,
         });
 
         // Check cache
         const cached = refinementCache.get(cacheKey);
         if (cached) {
             logger.info('Cache hit - returning cached refinement');
+            let validationResult: ValidationResult | undefined;
+            if (options?.validateOutput !== false) {
+                validationResult = OutputValidator.validate(cached, isStrict);
+            }
+            // Cached results don't have token count - use heuristic estimate
+            const cachedTokens = Math.ceil(cached.length / 3.5);
             return {
                 refined: cached,
+                tokens: cachedTokens,
+                validation: validationResult,
                 templateUsed: templateId,
                 iteration: options?.iteration || 1,
             };
@@ -128,19 +150,16 @@ export class PromptRefinerService implements IPromptRefinerService {
 
         logger.debug('Loading prompt template', { templateId });
 
-        // Get role from active session first (needed for template selection)
-        const sessionManager = SessionManager.getInstance();
-        const activeSession = await sessionManager.getActiveSession();
-        const roleId = activeSession?.metadata?.role || DEFAULT_ROLE_ID;
         const role = getRoleById(roleId);
 
         // Load template (with role-specific template support)
         const template = await this.loadTemplate(options?.templateId, roleId);
         
-        // Combine role system prompt + template
-        const systemTemplate = role ? 
-            `${role.systemPrompt}\n\n${template}` : 
-            template;
+        // Combine role + template; language + no-implementation reminders last (models weigh final lines strongly)
+        const systemFooter = `\n\n---\n${REFINER_OUTPUT_LANGUAGE_INSTRUCTION}\n\n---\n${REFINER_OUTPUT_SCOPE_FOOTER}`;
+        const systemTemplate = role
+            ? `${role.systemPrompt}\n\n${template}${systemFooter}`
+            : `${template}${systemFooter}`;
 
         // Check cancellation before calling provider
         if (token?.isCancellationRequested) {
@@ -156,23 +175,26 @@ export class PromptRefinerService implements IPromptRefinerService {
 
         const activeProvider = this.providerManager.getActiveProvider();
         const circuitBreaker = getCircuitBreaker(providerId);
-        
+        const { signal, dispose } = linkCancellationToAbort(token);
+
         try {
             // Execute with circuit breaker and retry logic
-            const refined = await circuitBreaker.execute(async () => {
+            const providerResult = await circuitBreaker.execute(async () => {
                 return withRetry(async () => {
                     // Check cancellation before each attempt
                     if (token?.isCancellationRequested) {
                         throw new Error('Operation cancelled');
                     }
                     
-                    return activeProvider.refine(userPrompt, systemTemplate, { strict: isStrict });
+                    return activeProvider.refine(userPrompt, systemTemplate, { strict: isStrict, signal });
                 }, {
                     maxRetries: 3,
                     baseDelayMs: 1000,
                     maxDelayMs: 10000,
                 });
             });
+
+            const { refined, tokens } = providerResult;
 
             // Store in cache
             refinementCache.set(cacheKey, refined);
@@ -192,7 +214,8 @@ export class PromptRefinerService implements IPromptRefinerService {
 
             logger.info('Refinement completed successfully', { 
                 score: validationResult?.score,
-                valid: validationResult?.valid 
+                valid: validationResult?.valid,
+                tokens 
             });
 
             // Track analytics
@@ -201,6 +224,7 @@ export class PromptRefinerService implements IPromptRefinerService {
 
             return {
                 refined,
+                tokens,
                 validation: validationResult,
                 templateUsed: templateId,
                 iteration: options?.iteration || 1,
@@ -236,6 +260,8 @@ export class PromptRefinerService implements IPromptRefinerService {
             
             logger.error('Refinement failed', error as Error);
             throw error;
+        } finally {
+            dispose();
         }
     }
 
@@ -269,6 +295,11 @@ Please refine the prompt again incorporating the feedback above.`;
      * @param roleId Optional role ID to load role-specific template
      */
     private async loadTemplate(templateId?: string, roleId?: string): Promise<string> {
+        const extensionContext = this.context;
+        if (!extensionContext) {
+            throw new Error('Extension context not initialized');
+        }
+
         // If specific template requested (not default/strict)
         if (templateId && templateId !== 'default' && templateId !== 'strict') {
             const template = await this.templateManager.getTemplate(templateId);
@@ -283,12 +314,12 @@ Please refine the prompt again incorporating the feedback above.`;
         
         if (useRoleTemplates && roleId && roleId !== 'default') {
             // Try to load role-specific template first
-            const roleTemplatePath = this.context!.asAbsolutePath(
+            const roleTemplatePath = extensionContext.asAbsolutePath(
                 path.join('dist', 'templates', 'roles', `${roleId}.md`)
             );
             
             try {
-                const roleTemplate = fs.readFileSync(roleTemplatePath, 'utf-8');
+                const roleTemplate = await fs.promises.readFile(roleTemplatePath, 'utf-8');
                 logger.debug('Loaded role-specific template', { roleId });
                 return roleTemplate;
             } catch (error) {
@@ -300,15 +331,15 @@ Please refine the prompt again incorporating the feedback above.`;
         // Load from file system (default or strict)
         const isStrict = config.isStrictMode();
         const templateName = isStrict ? 'prompt_template_strict.md' : 'prompt_template.md';
-        const templatePath = this.context!.asAbsolutePath(path.join('dist', 'templates', templateName));
+        const templatePath = extensionContext.asAbsolutePath(path.join('dist', 'templates', templateName));
 
         try {
-            return fs.readFileSync(templatePath, 'utf-8');
+            return await fs.promises.readFile(templatePath, 'utf-8');
         } catch (error) {
             // Try src path if dist fails (debug mode)
-            const srcPath = this.context!.asAbsolutePath(path.join('src', 'templates', templateName));
+            const srcPath = extensionContext.asAbsolutePath(path.join('src', 'templates', templateName));
             try {
-                return fs.readFileSync(srcPath, 'utf-8');
+                return await fs.promises.readFile(srcPath, 'utf-8');
             } catch (err) {
                 logger.error('Failed to load prompt template', err as Error);
                 throw new Error('Could not load prompt template. Please check installation.');

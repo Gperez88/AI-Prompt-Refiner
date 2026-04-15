@@ -1,4 +1,4 @@
-import { IAIProvider } from './IAIProvider';
+import { IAIProvider, RefineCallOptions, RefineResult } from './IAIProvider';
 
 export class MockProvider implements IAIProvider {
     readonly id = 'mock';
@@ -8,11 +8,21 @@ export class MockProvider implements IAIProvider {
         return true;
     }
 
-    async refine(userPrompt: string, systemTemplate: string, options?: { strict?: boolean; temperature?: number }): Promise<string> {
-        // Simulate network latency
-        await new Promise(resolve => setTimeout(resolve, 500));
+    async refine(userPrompt: string, systemTemplate: string, options?: RefineCallOptions): Promise<RefineResult> {
+        const signal = options?.signal;
+        await new Promise<void>((resolve, reject) => {
+            if (signal?.aborted) {
+                reject(new Error('Operation cancelled'));
+                return;
+            }
+            const id = setTimeout(resolve, 500);
+            signal?.addEventListener('abort', () => {
+                clearTimeout(id);
+                reject(new Error('Operation cancelled'));
+            }, { once: true });
+        });
 
-        return `[MOCK REFINEMENT]
+        const refined = `[MOCK REFINEMENT]
 Refined version of: "${userPrompt}"
 
 [Objective]
@@ -28,5 +38,7 @@ Using Mock Provider.
 [Expected Output]
 A demonstrated refined prompt structure.
 `;
+        const tokens = Math.ceil(refined.length / 3.5);
+        return { refined, tokens };
     }
 }

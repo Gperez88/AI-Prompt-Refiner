@@ -6,8 +6,8 @@ import { registerTemplateCommands } from './commands/templateCommands';
 import { ConfigurationManager } from './services/ConfigurationManager';
 import { ChatViewProvider } from './views/ChatViewProvider';
 import { SettingsViewProvider } from './views/SettingsViewProvider';
-import { logger, LogLevel } from './services/Logger';
-import { ErrorHandler, ErrorType } from './utils/ErrorHandler';
+import { logger } from './services/Logger';
+import { ErrorHandler } from './utils/ErrorHandler';
 import { Analytics } from './services/Analytics';
 
 let statusBarItem: vscode.StatusBarItem;
@@ -57,6 +57,8 @@ export function activate(context: vscode.ExtensionContext) {
 
         const selection = editor.selection;
         const text = editor.document.getText(selection);
+        const sourceDocumentUri = editor.document.uri;
+        const sourceSelectionRange = new vscode.Range(selection.start, selection.end);
 
         if (!text) {
             vscode.window.showWarningMessage('Please select the prompt text you want to refine.');
@@ -116,13 +118,14 @@ export function activate(context: vscode.ExtensionContext) {
                     vscode.window.showInformationMessage('Refined prompt copied to clipboard!');
                     logger.info('User copied refined prompt to clipboard');
                 } else if (action === 'Apply to Editor') {
-                    const editor = vscode.window.activeTextEditor;
-                    if (editor) {
-                        await editor.edit(editBuilder => {
-                            editBuilder.replace(editor.selection, refinedText);
-                        });
+                    const wsEdit = new vscode.WorkspaceEdit();
+                    wsEdit.replace(sourceDocumentUri, sourceSelectionRange, refinedText);
+                    const applied = await vscode.workspace.applyEdit(wsEdit);
+                    if (applied) {
                         vscode.window.showInformationMessage('Refined prompt applied to editor!');
                         logger.info('User applied refined prompt to editor');
+                    } else {
+                        vscode.window.showWarningMessage('Could not apply refined prompt to the original document.');
                     }
                 } else {
                     logger.info('User dismissed refined prompt');
@@ -153,9 +156,10 @@ export function activate(context: vscode.ExtensionContext) {
                     valid: result.validation?.valid
                 });
 
-            } catch (error: any) {
-                const errorInfo = ErrorHandler.classifyError(error);
-                logger.error('Prompt refinement failed', error, errorInfo);
+            } catch (error: unknown) {
+                const err = error instanceof Error ? error : new Error(String(error));
+                const errorInfo = ErrorHandler.classifyError(err);
+                logger.error('Prompt refinement failed', err, errorInfo);
                 
                 const action = await vscode.window.showErrorMessage(
                     errorInfo.userMessage,
@@ -390,5 +394,6 @@ function updateStatusBarItem(): void {
 
 export function deactivate() {
     logger.info('AI Prompt Refiner extension deactivating...');
+    Analytics.getInstance().dispose();
     logger.dispose();
 }

@@ -1,4 +1,5 @@
 import { logger } from '../services/Logger';
+import { isAbortOrUserCancellation } from './cancellationAbort';
 
 import { randomInt } from 'crypto';
 
@@ -10,14 +11,6 @@ export interface RetryConfig {
     baseDelayMs: number;
     maxDelayMs: number;
     retryableErrors: string[];
-}
-
-/**
- * Retry state
- */
-interface RetryState {
-    attempt: number;
-    lastError?: Error;
 }
 
 /**
@@ -40,6 +33,9 @@ export async function withRetry<T>(
         try {
             return await fn();
         } catch (error) {
+            if (isAbortOrUserCancellation(error)) {
+                throw error;
+            }
             // Check if we should retry
             if (attempt > retryConfig.maxRetries) {
                 logger.warn('Max retries exceeded', {

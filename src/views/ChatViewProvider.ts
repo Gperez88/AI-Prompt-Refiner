@@ -1,10 +1,11 @@
 import * as vscode from 'vscode';
+import { randomBytes } from 'crypto';
 import { PromptRefinerService } from '../services/PromptRefinerService';
 import { logger } from '../services/Logger';
 import { ErrorHandler, RateLimiter, InputValidator } from '../utils/ErrorHandler';
 import { SessionManager } from '../services/SessionManager';
 import { ConfigurationManager } from '../services/ConfigurationManager';
-import { RoleId, isValidRoleId, getRoleById, PREDEFINED_ROLES } from '../types/Role';
+import { RoleId, isValidRoleId, getRoleById } from '../types/Role';
 import { Analytics } from '../services/Analytics';
 
 /**
@@ -35,7 +36,8 @@ type WebviewMessage =
   | { type: 'loadInitialState' }
   | { type: 'openSettings' }
   | { type: 'exportAllSessions' }
-  | { type: 'clearAllSessions' };
+  | { type: 'clearAllSessions' }
+  | { type: 'copyToClipboard'; text: string };
 
 /**
  * Provider for the chat view webview panel
@@ -47,6 +49,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     private rateLimiter!: RateLimiter;
     private sessionManager: SessionManager;
     private editingMessageId: string | null = null;
+    private refineCancellation?: vscode.CancellationTokenSource;
 
     constructor(
     private readonly _extensionUri: vscode.Uri,
@@ -61,9 +64,11 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
    */
     public resolveWebviewView(
         webviewView: vscode.WebviewView,
-        context: vscode.WebviewViewResolveContext,
+        _context: vscode.WebviewViewResolveContext,
         _token: vscode.CancellationToken,
     ) {
+        void _context;
+        void _token;
         this._view = webviewView;
 
         webviewView.webview.options = {
@@ -77,10 +82,11 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             this._loadInitialState();
         });
 
-        webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+        const nonce = randomBytes(16).toString('base64');
+        webviewView.webview.html = this._getHtmlForWebview(webviewView.webview, nonce);
 
         // Handle messages from webview
-        webviewView.webview.onDidReceiveMessage(async (data: WebviewMessage) => {
+        const messageDisposable = webviewView.webview.onDidReceiveMessage(async (data: WebviewMessage) => {
             try {
                 switch (data.type) {
                 // Message handling
@@ -107,6 +113,9 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                     break;
                 case 'cancelEditing':
                     this.editingMessageId = null;
+                    break;
+                case 'copyToClipboard':
+                    await this._handleCopyToClipboard(data.text);
                     break;
 
                     // Session management
@@ -174,6 +183,12 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                 });
             }
         });
+        webviewView.onDidDispose(() => {
+            messageDisposable.dispose();
+            this.refineCancellation?.cancel();
+            this.refineCancellation?.dispose();
+            this.refineCancellation = undefined;
+        });
     }
 
     // ==================== MESSAGE HANDLERS ====================
@@ -223,7 +238,8 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             role: 'user',
             content: prompt,
             provider,
-            model
+            model,
+            tokens: 0
         });
 
         this._view?.webview.postMessage({
@@ -241,17 +257,24 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             sessionId: activeSession.id 
         });
 
+        this.refineCancellation?.cancel();
+        this.refineCancellation?.dispose();
+        const refineCts = new vscode.CancellationTokenSource();
+        this.refineCancellation = refineCts;
+
         try {
             const service = PromptRefinerService.getInstance();
-            const result = await service.refine(prompt);
+            const result = await service.refine(prompt, refineCts.token);
             const refined = result.refined;
+            const tokens = result.tokens;
 
             // Add assistant message to session
             const assistantMessage = await this.sessionManager.addMessageToSession(activeSession.id, {
                 role: 'assistant',
                 content: refined,
                 provider,
-                model
+                model,
+                tokens
             });
 
             this._view?.webview.postMessage({
@@ -263,16 +286,22 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             await this._notifySessionListChanged();
 
             logger.info('Chat refinement completed successfully', { sessionId: activeSession.id });
-        } catch (error: any) {
-            const errorInfo = ErrorHandler.classifyError(error);
-            logger.error('Chat refinement failed', error, errorInfo);
+        } catch (error: unknown) {
+            const err = error instanceof Error ? error : new Error(String(error));
+            if (err.message === 'Operation cancelled' || refineCts.token.isCancellationRequested) {
+                logger.info('Chat refinement cancelled', { sessionId: activeSession.id });
+                return;
+            }
+            const errorInfo = ErrorHandler.classifyError(err);
+            logger.error('Chat refinement failed', err, errorInfo);
 
             // Add error message to session
             const errorMessage = await this.sessionManager.addMessageToSession(activeSession.id, {
                 role: 'error',
                 content: errorInfo.userMessage,
                 provider,
-                model
+                model,
+                tokens: 0
             });
 
             this._view?.webview.postMessage({
@@ -280,6 +309,12 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                 message: errorMessage
             });
         } finally {
+            if (this.refineCancellation === refineCts) {
+                refineCts.dispose();
+                this.refineCancellation = undefined;
+            } else {
+                refineCts.dispose();
+            }
             this._view?.webview.postMessage({ type: 'setLoading', loading: false });
         }
     }
@@ -320,6 +355,25 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             this._view?.webview.postMessage({
                 type: 'removeMessage',
                 messageId
+            });
+        }
+    }
+
+    /**
+     * Copy text from webview using the extension host clipboard (webview Clipboard API is unreliable).
+     */
+    private async _handleCopyToClipboard(text: string) {
+        if (!this._view) {
+            return;
+        }
+        try {
+            await vscode.env.clipboard.writeText(text);
+            this._view.webview.postMessage({ type: 'showSuccess', content: 'Copied to clipboard' });
+        } catch (err) {
+            logger.error('Clipboard write failed', err as Error);
+            this._view.webview.postMessage({
+                type: 'showError',
+                content: 'Could not copy to clipboard',
             });
         }
     }
@@ -744,13 +798,20 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     /**
    * Generate the HTML for the webview
    */
-    private _getHtmlForWebview(webview: vscode.Webview) {
-        const iconUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'icon.png'));
+    private _getHtmlForWebview(webview: vscode.Webview, nonce: string) {
+        const csp = [
+            'default-src \'none\'',
+            `style-src 'unsafe-inline' ${webview.cspSource}`,
+            `img-src ${webview.cspSource} https: data:`,
+            `font-src ${webview.cspSource}`,
+            `script-src 'nonce-${nonce}'`,
+        ].join('; ');
 
         return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="${csp}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Prompt Refiner Chat</title>
     <style>
@@ -1386,8 +1447,9 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
 
         .message-header {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-start;
             align-items: center;
+            gap: 10px;
             margin-bottom: 6px;
             font-size: 11px;
             opacity: 0.7;
@@ -1398,8 +1460,14 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             text-transform: capitalize;
         }
 
+        .token-count {
+            font-size: 10px;
+            color: var(--vscode-descriptionForeground);
+        }
+
         .message-time {
             font-size: 10px;
+            margin-left: auto;
         }
 
         .message-content {
@@ -1767,7 +1835,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         </div>
     </div>
 
-    <script>
+    <script nonce="${nonce}">
         const vscode = acquireVsCodeApi();
         const chatContainer = document.getElementById('chat-container');
         const promptInput = document.getElementById('prompt-input');
@@ -2052,20 +2120,24 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                     <div class="edit-container">
                         <textarea class="edit-textarea" id="edit-\${message.id}">\${escapeHtml(message.content)}</textarea>
                         <div class="edit-actions">
-                            <button class="edit-btn cancel" onclick="cancelEdit()">Cancel</button>
-                            <button class="edit-btn save" onclick="saveEdit('\${message.id}')">Save</button>
+                            <button type="button" class="edit-btn cancel">Cancel</button>
+                            <button type="button" class="edit-btn save" data-message-id="\${message.id}">Save</button>
                         </div>
                     </div>
                 \`;
             } else {
+                // Format token count with commas
+                const tokensStr = message.tokens ? message.tokens.toLocaleString() : null;
+                
                 div.innerHTML = \`
                     <div class="message-header">
                         <span class="message-role">\${message.role}</span>
+                        \${tokensStr ? \`<span class="token-count">\${tokensStr} tokens</span>\` : ''}
                         <span class="message-time">\${timeStr}</span>
                     </div>
                     <div class="message-content">\${escapeHtml(message.content)}</div>
                     <div class="message-actions">
-                        <button class="action-btn copy-btn" onclick="copyMessage('\${message.id}')" title="Copy">
+                        <button type="button" class="action-btn copy-btn" title="Copy">
                             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="14" height="14">
                                 <path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>
                                 <rect x="8" y="2" width="8" height="4" rx="1" stroke="currentColor" stroke-width="2" fill="none"/>
@@ -2085,16 +2157,19 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         }
 
         function copyMessage(id) {
+            const sid = String(id);
             const messageElements = document.querySelectorAll('.message');
             let messageContent = '';
             messageElements.forEach(el => {
-                if (el.dataset.id === id) {
+                if (el.dataset.id === sid) {
                     messageContent = el.querySelector('.message-content')?.textContent || '';
                 }
             });
-            if (messageContent) {
-                navigator.clipboard.writeText(messageContent);
-                showToast('Copied to clipboard', 'success');
+            const text = (messageContent || '').trim();
+            if (text.length > 0) {
+                vscode.postMessage({ type: 'copyToClipboard', text });
+            } else {
+                showToast('Nothing to copy', 'error');
             }
         }
 
@@ -2171,6 +2246,31 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         }
 
         // ==================== EVENT LISTENERS ====================
+
+        // Message actions: CSP allows only nonced <script>; inline onclick on dynamic HTML is blocked.
+        chatContainer.addEventListener('click', (e) => {
+            const t = e.target;
+            if (!t || !t.closest) return;
+            const copyBtn = t.closest('.copy-btn');
+            if (copyBtn) {
+                e.preventDefault();
+                const row = copyBtn.closest('.message');
+                const mid = row && row.dataset && row.dataset.id;
+                if (mid) copyMessage(mid);
+                return;
+            }
+            if (t.closest('.edit-btn.cancel')) {
+                e.preventDefault();
+                cancelEdit();
+                return;
+            }
+            const saveBtn = t.closest('.edit-btn.save');
+            if (saveBtn) {
+                e.preventDefault();
+                const mid = saveBtn.getAttribute('data-message-id');
+                if (mid) saveEdit(mid);
+            }
+        });
 
         sendBtn.addEventListener('click', sendMessage);
         

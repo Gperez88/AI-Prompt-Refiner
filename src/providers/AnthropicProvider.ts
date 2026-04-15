@@ -1,4 +1,5 @@
-import { IAIProvider } from './IAIProvider';
+import { IAIProvider, RefineCallOptions, RefineResult } from './IAIProvider';
+import { isAbortOrUserCancellation } from '../utils/cancellationAbort';
 import { ConfigurationManager } from '../services/ConfigurationManager';
 
 /**
@@ -21,8 +22,8 @@ export class AnthropicProvider implements IAIProvider {
     async refine(
         userPrompt: string,
         systemTemplate: string,
-        options?: { strict?: boolean; temperature?: number }
-    ): Promise<string> {
+        options?: RefineCallOptions
+    ): Promise<RefineResult> {
         const config = ConfigurationManager.getInstance();
         const apiKey = await config.getApiKey(this.id);
 
@@ -53,6 +54,7 @@ export class AnthropicProvider implements IAIProvider {
                         },
                     ],
                 }),
+                signal: options?.signal,
             });
 
             if (!response.ok) {
@@ -60,15 +62,25 @@ export class AnthropicProvider implements IAIProvider {
                 throw new Error(`Anthropic API error: ${response.status} - ${error}`);
             }
 
-            const data = await response.json() as any;
+            const data = await response.json() as { 
+                content: Array<{ text: string }>;
+                usage?: { input_tokens: number; output_tokens: number };
+            };
       
             if (data.content && data.content.length > 0) {
-                return data.content[0].text;
+                const refined = data.content[0].text;
+                const usage = data.usage;
+                const tokens = (usage?.input_tokens || 0) + (usage?.output_tokens || 0);
+                return { refined, tokens };
             }
 
             throw new Error('Empty response from Anthropic API');
-        } catch (error: any) {
-            throw new Error(`Anthropic refinement failed: ${error.message}`);
+        } catch (error: unknown) {
+            if (isAbortOrUserCancellation(error)) {
+                throw new Error('Operation cancelled');
+            }
+            const msg = error instanceof Error ? error.message : String(error);
+            throw new Error(`Anthropic refinement failed: ${msg}`);
         }
     }
 
