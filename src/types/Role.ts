@@ -35,10 +35,12 @@ export const REFINER_OUTPUT_LANGUAGE_INSTRUCTION = `Output language (refinement 
 - Do not translate the user's wording or your output to another language unless the user explicitly asked for translation.`;
 
 /** Opening constraint for every role: refinement ≠ execution. */
-export const REFINER_MODE_PREAMBLE = `PROMPT-REFINEMENT MODE (IDE extension): You only rewrite the user's prompt for clarity. Never implement, solve, or demonstrate their request—no tutorials, no full applications, no long code dumps, no walkthroughs. Your entire reply must be the improved prompt text alone, following the template below.`;
+export const REFINER_MODE_PREAMBLE =
+    'PROMPT-REFINEMENT MODE (IDE extension): You only rewrite the user\'s prompt for clarity. Never implement, solve, or demonstrate their request—no tutorials, no full applications, no long code dumps, no walkthroughs. Your entire reply must be the improved prompt text alone, following the template below.';
 
 /** Repeated at end of full system message with language rule. */
-export const REFINER_OUTPUT_SCOPE_FOOTER = `Task boundary: Respond with ONLY the refined prompt text. Do not fulfill the user's task, paste complete implementations, or add solution commentary.`;
+export const REFINER_OUTPUT_SCOPE_FOOTER =
+    'Task boundary: Respond with ONLY the refined prompt text. Do not fulfill the user\'s task, paste complete implementations, or add solution commentary.';
 
 /**
  * Predefined static roles
