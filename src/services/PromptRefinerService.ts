@@ -13,7 +13,12 @@ import { getCircuitBreaker, CircuitBreakerError } from '../utils/CircuitBreaker'
 import { withRetry } from '../utils/Retry';
 import { linkCancellationToAbort } from '../utils/cancellationAbort';
 import { SessionManager } from './SessionManager';
-import { getRoleById, DEFAULT_ROLE_ID } from '../types/Role';
+import {
+    getRoleById,
+    DEFAULT_ROLE_ID,
+    REFINER_OUTPUT_LANGUAGE_INSTRUCTION,
+    REFINER_OUTPUT_SCOPE_FOOTER,
+} from '../types/Role';
 import { Analytics } from './Analytics';
 
 export interface RefinementOptions {
@@ -102,18 +107,26 @@ export class PromptRefinerService implements IPromptRefinerService {
             throw new Error('Operation cancelled');
         }
 
-        // Generate cache key
-        const providerId = ConfigurationManager.getInstance().getProviderId();
-        const modelId = ConfigurationManager.getInstance().getModelId();
+        const config = ConfigurationManager.getInstance();
+        const providerId = config.getProviderId();
+        const modelId = config.getModelId();
         const templateId = options?.templateId || 'default';
-        const isStrict = ConfigurationManager.getInstance().isStrictMode();
-        
+        const isStrict = config.isStrictMode();
+        const useRoleTemplates = config.getUseRoleTemplates();
+
+        const sessionManager = SessionManager.getInstance();
+        const activeSession = await sessionManager.getActiveSession();
+        const roleId = activeSession?.metadata?.role || DEFAULT_ROLE_ID;
+
+        // Cache must vary with role and role-template mode (system prompt + template body differ)
         const cacheKey = LRUCache.generateKey({
             prompt: userPrompt,
             provider: providerId,
             model: modelId,
             template: templateId,
             strict: isStrict,
+            roleId,
+            useRoleTemplates,
         });
 
         // Check cache
@@ -137,19 +150,16 @@ export class PromptRefinerService implements IPromptRefinerService {
 
         logger.debug('Loading prompt template', { templateId });
 
-        // Get role from active session first (needed for template selection)
-        const sessionManager = SessionManager.getInstance();
-        const activeSession = await sessionManager.getActiveSession();
-        const roleId = activeSession?.metadata?.role || DEFAULT_ROLE_ID;
         const role = getRoleById(roleId);
 
         // Load template (with role-specific template support)
         const template = await this.loadTemplate(options?.templateId, roleId);
         
-        // Combine role system prompt + template
-        const systemTemplate = role ? 
-            `${role.systemPrompt}\n\n${template}` : 
-            template;
+        // Combine role + template; language + no-implementation reminders last (models weigh final lines strongly)
+        const systemFooter = `\n\n---\n${REFINER_OUTPUT_LANGUAGE_INSTRUCTION}\n\n---\n${REFINER_OUTPUT_SCOPE_FOOTER}`;
+        const systemTemplate = role
+            ? `${role.systemPrompt}\n\n${template}${systemFooter}`
+            : `${template}${systemFooter}`;
 
         // Check cancellation before calling provider
         if (token?.isCancellationRequested) {
