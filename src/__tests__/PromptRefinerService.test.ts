@@ -46,8 +46,8 @@ describe('PromptRefinerService with DI', () => {
       refine: vi.fn(),
     } as any;
     
-    // Setup default mock behavior
-    (mockProvider.refine as any).mockResolvedValue('refined result');
+    // Setup default mock behavior - return object with refined and tokens
+    (mockProvider.refine as any).mockResolvedValue({ refined: 'refined result', tokens: 50 });
 
     // Create mock provider manager
     mockProviderManager = {
@@ -148,7 +148,7 @@ describe('PromptRefinerService with DI', () => {
     });
 
     it('should return refined result with metadata', async () => {
-      (mockProvider.refine as any).mockResolvedValue('improved prompt');
+      (mockProvider.refine as any).mockResolvedValue({ refined: 'improved prompt', tokens: 30 });
       
       const result = await service.refine('original prompt');
 
